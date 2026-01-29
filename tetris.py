@@ -516,5 +516,6 @@ def on_key_down(key):
         spawn_piece()
 
 
-# Run the game
-pgzrun.go()
+# Run the game only when executed as main
+if __name__ == '__main__':
+    pgzrun.go()
