@@ -6,6 +6,7 @@ Built with Pygame Zero
 """
 
 import pgzrun
+from pygame import Rect
 
 # Window configuration
 WIDTH = 1280
@@ -27,26 +28,29 @@ GRID_HEIGHT = 20  # 20 blocks tall
 GRID_X = 400  # X position of game grid
 GRID_Y = 0  # Y position of game grid
 
+GRID_RECT = Rect(GRID_X, GRID_Y, GRID_WIDTH * BLOCK_SIZE, GRID_HEIGHT * BLOCK_SIZE)
+NEXT_PIECE_BOX = Rect(950, 120, 240, 240)
+
 
 def draw():
     """Main draw function - called by Pygame Zero every frame"""
     # Clear screen with background color
     screen.fill(BACKGROUND_COLOR)
     
-    # Draw game title
+    # Draw game title (rotated 90 degrees on left border)
     screen.draw.text(
         "HAHA HAUSSERVICE HAUBENHOFER",
-        topleft=(50, 30),
+        center=(40, HEIGHT // 2),
         fontsize=36,
-        color=UI_TEXT_COLOR
+        color=UI_TEXT_COLOR,
+        angle=90
     )
     
     # Draw game grid background
-    grid_rect = (GRID_X, GRID_Y, GRID_WIDTH * BLOCK_SIZE, GRID_HEIGHT * BLOCK_SIZE)
-    screen.draw.filled_rect(grid_rect, GRID_BACKGROUND)
+    screen.draw.filled_rect(GRID_RECT, GRID_BACKGROUND)
     
     # Draw grid border
-    screen.draw.rect(grid_rect, GRID_BORDER)
+    screen.draw.rect(GRID_RECT, GRID_BORDER)
     
     # Draw grid lines (vertical)
     for x in range(1, GRID_WIDTH):
@@ -75,9 +79,8 @@ def draw():
     )
     
     # Draw next piece box
-    next_piece_box = (950, 120, 240, 240)
-    screen.draw.filled_rect(next_piece_box, GRID_BACKGROUND)
-    screen.draw.rect(next_piece_box, GRID_BORDER)
+    screen.draw.filled_rect(NEXT_PIECE_BOX, GRID_BACKGROUND)
+    screen.draw.rect(NEXT_PIECE_BOX, GRID_BORDER)
     
     # Draw score display
     screen.draw.text(
@@ -110,9 +113,9 @@ def draw():
     )
     
     controls_text = [
-        "← → Move",
-        "↑ Rotate",
-        "↓ Soft Drop",
+        "LEFT/RIGHT Move",
+        "UP Rotate",
+        "DOWN Soft Drop",
         "SPACE Hard Drop"
     ]
     
