@@ -55,7 +55,16 @@ PIECE_COLORS = {
 }
 
 # Game timing
-FALL_SPEED = 0.5  # Seconds between automatic falls
+INITIAL_FALL_SPEED = 0.5  # Initial seconds between automatic falls
+SPEED_MULTIPLIER = 0.9  # Speed multiplier per level (10% faster)
+
+# Scoring constants
+SCORE_SINGLE = 100
+SCORE_DOUBLE = 300
+SCORE_TRIPLE = 500
+SCORE_TETRIS = 800
+SCORE_SOFT_DROP = 1
+SCORE_HARD_DROP = 2
 
 # Game state
 grid = [[0 for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
@@ -63,6 +72,10 @@ current_piece = None
 next_piece = None
 fall_timer = 0
 game_over = False
+score = 0
+level = 1
+lines_cleared = 0
+fall_speed = INITIAL_FALL_SPEED
 
 
 class Piece:
@@ -126,6 +139,59 @@ def lock_piece(piece):
     for bx, by in piece.get_blocks():
         if by >= 0:  # Only lock blocks that are visible
             grid[by][bx] = piece.shape_type
+
+
+def check_lines():
+    """Check for completed lines and return a list of line indices to clear"""
+    lines_to_clear = []
+    
+    # Check each row from bottom to top
+    for y in range(GRID_HEIGHT):
+        if all(grid[y][x] != 0 for x in range(GRID_WIDTH)):
+            lines_to_clear.append(y)
+    
+    return lines_to_clear
+
+
+def clear_lines(lines_to_clear):
+    """Clear completed lines and move rows down"""
+    global grid, score, level, lines_cleared, fall_speed
+    
+    if not lines_to_clear:
+        return
+    
+    # Sort lines in descending order (bottom to top, highest index first)
+    # This ensures we delete from bottom to top so indices don't shift
+    lines_to_clear.sort(reverse=True)
+    
+    # Remove completed lines from bottom to top
+    for y in lines_to_clear:
+        del grid[y]
+    
+    # Add empty lines at the top for each cleared line
+    for _ in range(len(lines_to_clear)):
+        grid.insert(0, [0 for _ in range(GRID_WIDTH)])
+    
+    # Update lines cleared count
+    num_lines = len(lines_to_clear)
+    lines_cleared += num_lines
+    
+    # Calculate score based on number of lines cleared (1-4 lines standard in Tetris)
+    if num_lines == 1:
+        score += SCORE_SINGLE * level
+    elif num_lines == 2:
+        score += SCORE_DOUBLE * level
+    elif num_lines == 3:
+        score += SCORE_TRIPLE * level
+    elif num_lines >= 4:  # 4 or more lines (Tetris)
+        score += SCORE_TETRIS * level
+    
+    # Level up every 10 lines
+    new_level = (lines_cleared // 10) + 1
+    if new_level > level and new_level <= 15:  # Max level 15
+        level = new_level
+        # Increase fall speed by 10% each level
+        fall_speed = INITIAL_FALL_SPEED * (SPEED_MULTIPLIER ** (level - 1))
 
 
 def spawn_piece():
@@ -257,21 +323,21 @@ def draw():
     
     # Draw score display
     screen.draw.text(
-        "SCORE: 0",
+        f"SCORE: {score}",
         topleft=(950, 400),
         fontsize=28,
         color=UI_TEXT_COLOR
     )
     
     screen.draw.text(
-        "LEVEL: 1",
+        f"LEVEL: {level}",
         topleft=(950, 450),
         fontsize=28,
         color=UI_TEXT_COLOR
     )
     
     screen.draw.text(
-        "LINES: 0",
+        f"LINES: {lines_cleared}",
         topleft=(950, 500),
         fontsize=28,
         color=UI_TEXT_COLOR
@@ -312,15 +378,23 @@ def draw():
         screen.draw.text(
             "GAME OVER",
             center=(GRID_X + GRID_WIDTH * BLOCK_SIZE // 2, 
-                   GRID_Y + GRID_HEIGHT * BLOCK_SIZE // 2 - 30),
+                   GRID_Y + GRID_HEIGHT * BLOCK_SIZE // 2 - 50),
             fontsize=48,
+            color=(255, 255, 255)
+        )
+        
+        screen.draw.text(
+            f"Final Score: {score}",
+            center=(GRID_X + GRID_WIDTH * BLOCK_SIZE // 2, 
+                   GRID_Y + GRID_HEIGHT * BLOCK_SIZE // 2 + 10),
+            fontsize=28,
             color=(255, 255, 255)
         )
         
         screen.draw.text(
             "Press R to Restart",
             center=(GRID_X + GRID_WIDTH * BLOCK_SIZE // 2, 
-                   GRID_Y + GRID_HEIGHT * BLOCK_SIZE // 2 + 30),
+                   GRID_Y + GRID_HEIGHT * BLOCK_SIZE // 2 + 50),
             fontsize=24,
             color=(255, 255, 255)
         )
@@ -343,7 +417,7 @@ def update(dt):
     fall_timer += dt
     
     # Automatic falling
-    if fall_timer >= FALL_SPEED:
+    if fall_timer >= fall_speed:
         fall_timer = 0
         
         # Try to move piece down
@@ -352,12 +426,17 @@ def update(dt):
         else:
             # Piece can't move down - lock it and spawn new piece
             lock_piece(current_piece)
+            
+            # Check and clear any completed lines
+            completed_lines = check_lines()
+            clear_lines(completed_lines)
+            
             spawn_piece()
 
 
 def on_key_down(key):
     """Handle keyboard input"""
-    global current_piece, grid, game_over, fall_timer, next_piece
+    global current_piece, grid, game_over, fall_timer, next_piece, score, level, lines_cleared, fall_speed
     
     # Restart game if game over
     if game_over and key == keys.R:
@@ -367,6 +446,10 @@ def on_key_down(key):
         next_piece = None
         fall_timer = 0
         game_over = False
+        score = 0
+        level = 1
+        lines_cleared = 0
+        fall_speed = INITIAL_FALL_SPEED
         return
     
     if current_piece is None or game_over:
@@ -408,15 +491,28 @@ def on_key_down(key):
     elif key == keys.DOWN:
         if not check_collision(current_piece, 0, 1):
             current_piece.move(0, 1)
+            score += SCORE_SOFT_DROP  # 1 point per cell
     
     # Hard drop (instant placement)
     elif key == keys.SPACE:
+        # Count cells dropped for scoring
+        cells_dropped = 0
+        
         # Move piece down until it collides
         while not check_collision(current_piece, 0, 1):
             current_piece.move(0, 1)
+            cells_dropped += 1
+        
+        # Add hard drop score (2 points per cell)
+        score += cells_dropped * SCORE_HARD_DROP
         
         # Lock the piece and spawn new one
         lock_piece(current_piece)
+        
+        # Check and clear any completed lines
+        completed_lines = check_lines()
+        clear_lines(completed_lines)
+        
         spawn_piece()
 
 
