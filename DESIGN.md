@@ -244,20 +244,46 @@ tetris/
 ├── DESIGN.md              (this file)
 ├── README.md              (project readme)
 ├── requirements.txt       (dependencies)
-├── tetris.py             (main game file)
-├── images/               (sprite directory)
+├── game_logic.py          (core game mechanics - no display dependencies)
+├── tetris.py              (Pygame Zero display and main game loop)
+├── test_tetris.py         (comprehensive test suite)
+├── images/                (sprite directory)
 │   ├── pieces/
 │   ├── ui/
 │   └── effects/
-└── sounds/               (optional, future)
+└── sounds/                (optional, future)
     ├── music/
     └── effects/
 ```
 
-### 8.3 Code Structure (tetris.py)
+### 8.3 Code Architecture
 
-**Core Components:**
-1. **Constants:** Grid size, colors, block size, speeds
+**Separation of Concerns:**
+
+The codebase is organized into distinct modules for better testability and maintainability:
+
+1. **game_logic.py** - Pure game mechanics
+   - Piece class (movement, rotation)
+   - Collision detection
+   - Line clearing and scoring
+   - Level progression
+   - No Pygame Zero dependencies
+   - Fully testable in headless mode
+
+2. **tetris.py** - Display and game loop
+   - Pygame Zero integration
+   - Drawing functions
+   - Input handling
+   - Main game loop (update/draw)
+   - Imports game logic from game_logic.py
+
+3. **test_tetris.py** - Test suite
+   - 30 comprehensive tests
+   - Tests game_logic module
+   - Runs without display
+
+**Core Components (game_logic.py):**
+1. **Constants:** Grid size, shapes, colors, scoring rules
 2. **Piece Class:** Represents furniture pieces with shape, color, position, rotation
 3. **Game State:** Current piece, grid, score, level, next piece
 4. **Input Handlers:** Keyboard controls
@@ -327,9 +353,9 @@ SHAPES = {
 - [ ] Polish visual appearance with brand colors
 
 ### Phase 5: Polish & Testing
-- [ ] Add controls display
-- [ ] Implement restart functionality
-- [ ] Test all game mechanics
+- [x] Add controls display
+- [x] Implement restart functionality
+- [x] Test all game mechanics
 - [ ] Balance difficulty curve
 - [ ] Bug fixes and optimization
 
@@ -373,6 +399,6 @@ The game will be considered complete when:
 
 ---
 
-**Document Version:** 2.1  
+**Document Version:** 2.3  
 **Last Updated:** 2026-01-29  
-**Status:** Phase 3 Complete - Line Clearing, Scoring & Level Progression Implemented
+**Status:** Phase 3 Complete + Phase 5 Testing Complete - Architecture refactored for Pygame Zero compatibility
