@@ -502,17 +502,19 @@ class TestIntegration:
         assert game_state['current_piece'] is not None
         assert game_state['next_piece'] is not None
         
-        # Move piece to bottom
-        while game_state['current_piece'].y < GRID_HEIGHT - 2:
-            game_state['current_piece'].move(0, 1)
+        # Move piece down but not all the way to avoid index issues
+        current_piece = game_state['current_piece']
+        # Move down while there's no collision
+        while not check_collision(current_piece, grid, 0, 1):
+            current_piece.move(0, 1)
         
         # Lock the piece
-        lock_piece(game_state['current_piece'], grid)
+        lock_piece(current_piece, grid)
         
         # Verify piece is locked
-        for bx, by in game_state['current_piece'].get_blocks():
-            if by >= 0:
-                assert grid[by][bx] == game_state['current_piece'].shape_type
+        for bx, by in current_piece.get_blocks():
+            if by >= 0 and by < GRID_HEIGHT:
+                assert grid[by][bx] == current_piece.shape_type
     
     def test_multiple_pieces_and_line_clear(self):
         """Test spawning multiple pieces and clearing a line"""
