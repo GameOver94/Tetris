@@ -1,5 +1,5 @@
 # Tetris
-A promotional Tetris game for Hausservice Haubentaucher
+A promotional Tetris game for Hausservice Haubenhofer
 
 ## Installation
 
