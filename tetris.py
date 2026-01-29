@@ -62,6 +62,7 @@ grid = [[0 for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
 current_piece = None
 next_piece = None
 fall_timer = 0
+game_over = False
 
 
 class Piece:
@@ -129,7 +130,7 @@ def lock_piece(piece):
 
 def spawn_piece():
     """Spawn a new piece"""
-    global current_piece, next_piece
+    global current_piece, next_piece, game_over, fall_timer
     
     if next_piece is None:
         # First piece - create both current and next
@@ -141,6 +142,13 @@ def spawn_piece():
         current_piece.x = GRID_WIDTH // 2 - 2
         current_piece.y = 0
         next_piece = Piece(random.choice(list(SHAPES.keys())))
+        
+        # Check for game over - if new piece collides immediately
+        if check_collision(current_piece, 0, 0):
+            game_over = True
+    
+    # Reset fall timer for consistent timing
+    fall_timer = 0
 
 
 def draw():
@@ -283,11 +291,38 @@ def draw():
             color=UI_TEXT_COLOR
         )
         y_offset += 30
+    
+    # Draw game over message if game is over
+    if game_over:
+        # Draw semi-transparent overlay
+        overlay_rect = Rect(GRID_X, GRID_Y + GRID_HEIGHT * BLOCK_SIZE // 2 - 100, 
+                           GRID_WIDTH * BLOCK_SIZE, 200)
+        screen.draw.filled_rect(overlay_rect, (0, 0, 0, 180))
+        
+        screen.draw.text(
+            "GAME OVER",
+            center=(GRID_X + GRID_WIDTH * BLOCK_SIZE // 2, 
+                   GRID_Y + GRID_HEIGHT * BLOCK_SIZE // 2 - 30),
+            fontsize=48,
+            color=(255, 255, 255)
+        )
+        
+        screen.draw.text(
+            "Press R to Restart",
+            center=(GRID_X + GRID_WIDTH * BLOCK_SIZE // 2, 
+                   GRID_Y + GRID_HEIGHT * BLOCK_SIZE // 2 + 30),
+            fontsize=24,
+            color=(255, 255, 255)
+        )
 
 
 def update(dt):
     """Main update function - called by Pygame Zero every frame"""
     global fall_timer, current_piece
+    
+    # Don't update if game is over
+    if game_over:
+        return
     
     # Initialize the first piece if needed
     if current_piece is None:
@@ -312,9 +347,19 @@ def update(dt):
 
 def on_key_down(key):
     """Handle keyboard input"""
-    global current_piece
+    global current_piece, grid, game_over, fall_timer, next_piece
     
-    if current_piece is None:
+    # Restart game if game over
+    if game_over and key == keys.R:
+        # Reset game state
+        grid = [[0 for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
+        current_piece = None
+        next_piece = None
+        fall_timer = 0
+        game_over = False
+        return
+    
+    if current_piece is None or game_over:
         return
     
     # Move left
