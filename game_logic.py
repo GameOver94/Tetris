@@ -4,6 +4,7 @@ Contains all game mechanics without display dependencies
 """
 
 import random
+from sprite_manager import Block
 
 # Grid configuration
 GRID_WIDTH = 10  # 10 blocks wide
@@ -45,20 +46,50 @@ SCORE_HARD_DROP = 2
 
 
 class Piece:
-    """Represents a Tetris piece (tetromino)"""
+    """Represents a Tetris piece (tetromino) with sprite-aware blocks"""
     
-    def __init__(self, shape_type):
-        """Initialize a piece with a given shape type"""
+    def __init__(self, shape_type, sprite_manager=None):
+        """
+        Initialize a piece with a given shape type.
+        
+        Args:
+            shape_type: The type of piece ('I', 'O', 'T', etc.)
+            sprite_manager: Optional sprite manager to create blocks with sprites
+        """
         self.shape_type = shape_type
-        self.shape = SHAPES[shape_type].copy()
         self.color = PIECE_COLORS[shape_type]
+        
         # Spawn at top center of grid
         self.x = GRID_WIDTH // 2 - 2
         self.y = 0
+        
+        # Create blocks with sprite information
+        # blocks is a list of ((dx, dy), Block) tuples
+        # where (dx, dy) is a tuple for the position relative to piece origin
+        # and Block contains the sprite information
+        self.blocks = []
+        for dx, dy in SHAPES[shape_type]:
+            if sprite_manager:
+                block = sprite_manager.create_block(shape_type, dx, dy)
+            else:
+                block = Block(shape_type, dx, dy, None)
+            self.blocks.append(((dx, dy), block))
+    
+    @property
+    def shape(self):
+        """Get the shape coordinates (for backward compatibility)"""
+        return [pos for pos, block in self.blocks]
     
     def get_blocks(self):
         """Get the absolute positions of all blocks in this piece"""
-        return [(self.x + dx, self.y + dy) for dx, dy in self.shape]
+        return [(self.x + dx, self.y + dy) for (dx, dy), block in self.blocks]
+    
+    def get_block_at_position(self, dx, dy):
+        """Get the Block object at a specific relative position"""
+        for (pos_x, pos_y), block in self.blocks:
+            if pos_x == dx and pos_y == dy:
+                return block
+        return None
     
     def move(self, dx, dy):
         """Move the piece by the given offset"""
@@ -66,19 +97,32 @@ class Piece:
         self.y += dy
     
     def rotate(self):
-        """Rotate the piece 90 degrees clockwise"""
+        """
+        Rotate the piece 90 degrees clockwise.
+        Blocks maintain their sprite information and rotate their sprites.
+        """
         # Don't rotate O-piece (it's a square)
         if self.shape_type == 'O':
             return
         
-        # Rotate each block around the origin
+        # Rotate each block position around the origin
         # (x, y) -> (y, -x) for 90-degree clockwise rotation
-        rotated = [(dy, -dx) for dx, dy in self.shape]
+        rotated_blocks = []
+        for (dx, dy), block in self.blocks:
+            new_dx = dy
+            new_dy = -dx
+            # Rotate the block's sprite as well
+            block.rotate_clockwise()
+            rotated_blocks.append(((new_dx, new_dy), block))
         
         # Normalize to keep top-left aligned
-        min_x = min(x for x, y in rotated)
-        min_y = min(y for x, y in rotated)
-        self.shape = [(x - min_x, y - min_y) for x, y in rotated]
+        min_x = min(dx for (dx, dy), block in rotated_blocks)
+        min_y = min(dy for (dx, dy), block in rotated_blocks)
+        
+        self.blocks = [
+            ((dx - min_x, dy - min_y), block) 
+            for (dx, dy), block in rotated_blocks
+        ]
 
 
 def check_collision(piece, grid, dx=0, dy=0):
@@ -101,10 +145,15 @@ def check_collision(piece, grid, dx=0, dy=0):
 
 
 def lock_piece(piece, grid):
-    """Lock the current piece into the grid"""
-    for bx, by in piece.get_blocks():
+    """
+    Lock the current piece into the grid.
+    Stores Block objects to preserve sprite information.
+    """
+    for (dx, dy), block in piece.blocks:
+        bx = piece.x + dx
+        by = piece.y + dy
         if by >= 0:  # Only lock blocks that are visible
-            grid[by][bx] = piece.shape_type
+            grid[by][bx] = block
 
 
 def check_lines(grid):
@@ -164,23 +213,24 @@ def clear_lines(lines_to_clear, grid, game_state):
         game_state['fall_speed'] = INITIAL_FALL_SPEED * (SPEED_MULTIPLIER ** (game_state['level'] - 1))
 
 
-def spawn_piece(game_state, grid):
+def spawn_piece(game_state, grid, sprite_manager=None):
     """Spawn a new piece
     
     Args:
         game_state: Dictionary containing current_piece, next_piece, game_over, fall_timer
         grid: The game grid
+        sprite_manager: Optional sprite manager to create pieces with sprites
     """
     if game_state['next_piece'] is None:
         # First piece - create both current and next
-        game_state['current_piece'] = Piece(random.choice(list(SHAPES.keys())))
-        game_state['next_piece'] = Piece(random.choice(list(SHAPES.keys())))
+        game_state['current_piece'] = Piece(random.choice(list(SHAPES.keys())), sprite_manager)
+        game_state['next_piece'] = Piece(random.choice(list(SHAPES.keys())), sprite_manager)
     else:
         # Use the next piece as current, generate new next
         game_state['current_piece'] = game_state['next_piece']
         game_state['current_piece'].x = GRID_WIDTH // 2 - 2
         game_state['current_piece'].y = 0
-        game_state['next_piece'] = Piece(random.choice(list(SHAPES.keys())))
+        game_state['next_piece'] = Piece(random.choice(list(SHAPES.keys())), sprite_manager)
         
         # Check for game over - if new piece collides immediately
         if check_collision(game_state['current_piece'], grid, 0, 0):

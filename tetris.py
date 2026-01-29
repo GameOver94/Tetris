@@ -6,12 +6,14 @@ Built with Pygame Zero
 """
 
 import pgzrun
-from pygame import Rect
+import os
+from pygame import Rect, transform, image
 from game_logic import (
     Piece, SHAPES, PIECE_COLORS, GRID_WIDTH, GRID_HEIGHT,
     INITIAL_FALL_SPEED, SCORE_SOFT_DROP, SCORE_HARD_DROP,
     check_collision, lock_piece, check_lines, clear_lines, spawn_piece
 )
+from sprite_manager import sprite_manager
 
 # Window configuration
 WIDTH = 1280
@@ -34,6 +36,66 @@ GRID_Y = 0  # Y position of game grid
 GRID_RECT = Rect(GRID_X, GRID_Y, GRID_WIDTH * BLOCK_SIZE, GRID_HEIGHT * BLOCK_SIZE)
 NEXT_PIECE_BOX = Rect(950, 120, 240, 240)
 
+# Load and prepare logo
+logo_surface = None  # Keep reference for potential future use (e.g., re-scaling)
+rotated_logo = None
+
+def load_logo():
+    """Load and rotate the logo for the left panel"""
+    global logo_surface, rotated_logo
+    
+    # Try to load logo (prefer PNG placeholder, fallback to JPEG)
+    logo_files = ['assets/logo_placeholder.png', 'assets/logo.png', 'assets/logo.jpeg']
+    logo_loaded = False
+    
+    for logo_file in logo_files:
+        if os.path.exists(logo_file):
+            try:
+                logo_surface = image.load(logo_file)
+                logo_loaded = True
+                print(f"Loaded logo from {logo_file}")
+                break
+            except (FileNotFoundError, IOError) as e:
+                print(f"Error loading {logo_file}: {e}")
+    
+    if not logo_loaded:
+        print("No logo file found")
+        rotated_logo = None
+        return
+    
+    try:
+        # Calculate dimensions for the left panel
+        # We want the logo to fit nicely in the left area (0-400px wide, 960px tall)
+        # With 90 degree rotation, the logo width becomes height and vice versa
+        
+        # The rotated logo should fit within 400px width and 960px height
+        # After rotation: original_height becomes width, original_width becomes height
+        max_rotated_width = 380  # Leave some margin
+        max_rotated_height = 940  # Leave some margin
+        
+        # Calculate what the original dimensions would need to be
+        # rotated_width = original_height, rotated_height = original_width
+        original_width = logo_surface.get_width()
+        original_height = logo_surface.get_height()
+        
+        # Scale to fit the rotated dimensions
+        scale_width = max_rotated_width / original_height
+        scale_height = max_rotated_height / original_width
+        scale_factor = min(scale_width, scale_height)
+        
+        new_width = int(original_width * scale_factor)
+        new_height = int(original_height * scale_factor)
+        
+        # Scale the logo
+        scaled_logo = transform.scale(logo_surface, (new_width, new_height))
+        
+        # Rotate 90 degrees clockwise
+        rotated_logo = transform.rotate(scaled_logo, -90)
+        
+    except (ValueError, TypeError) as e:
+        print(f"Error processing logo dimensions: {e}")
+        rotated_logo = None
+
 # Game state
 grid = [[0 for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
 game_state = {
@@ -47,20 +109,26 @@ game_state = {
     'fall_speed': INITIAL_FALL_SPEED
 }
 
+# Load logo on startup
+load_logo()
+
+# Load piece sprites
+sprite_manager.load_sprites()
+print(f"Sprite rendering: {'enabled' if sprite_manager.has_sprites() else 'disabled (using colors)'}")
+
 
 def draw():
     """Main draw function - called by Pygame Zero every frame"""
     # Clear screen with background color
     screen.fill(BACKGROUND_COLOR)
     
-    # Draw game title (rotated 90 degrees on left border)
-    screen.draw.text(
-        "HAHA HAUSSERVICE HAUBENHOFER",
-        center=(40, HEIGHT // 2),
-        fontsize=36,
-        color=UI_TEXT_COLOR,
-        angle=90
-    )
+    # Draw logo in the left spacing area (rotated 90 degrees)
+    if rotated_logo:
+        # Position the logo centered in the left area
+        # Left area is 0-400px wide, logo should be centered vertically and horizontally
+        logo_x = (GRID_X - rotated_logo.get_width()) // 2
+        logo_y = (HEIGHT - rotated_logo.get_height()) // 2
+        screen.blit(rotated_logo, (logo_x, logo_y))
     
     # Draw game grid background
     screen.draw.filled_rect(GRID_RECT, GRID_BACKGROUND)
@@ -89,31 +157,72 @@ def draw():
     # Draw locked pieces on the grid
     for y in range(GRID_HEIGHT):
         for x in range(GRID_WIDTH):
-            if grid[y][x] != 0:
-                # Draw a filled block
-                block_rect = Rect(
-                    GRID_X + x * BLOCK_SIZE,
-                    GRID_Y + y * BLOCK_SIZE,
-                    BLOCK_SIZE,
-                    BLOCK_SIZE
-                )
-                color = PIECE_COLORS[grid[y][x]]
-                screen.draw.filled_rect(block_rect, color)
-                screen.draw.rect(block_rect, GRID_BORDER)
+            cell = grid[y][x]
+            if cell != 0:
+                block_x = GRID_X + x * BLOCK_SIZE
+                block_y = GRID_Y + y * BLOCK_SIZE
+                
+                # Check if cell contains a Block object (new system) or just a string (old system)
+                if hasattr(cell, 'sprite') and hasattr(cell, 'rotation'):
+                    # New system with rotation: get rotated sprite from sprite_manager
+                    rotated_sprite = sprite_manager.get_block_sprite(
+                        cell.shape_type, cell.sprite_dx, cell.sprite_dy, cell.rotation
+                    )
+                    if rotated_sprite:
+                        screen.blit(rotated_sprite, (block_x, block_y))
+                    else:
+                        # Fallback to colored blocks
+                        block_rect = Rect(block_x, block_y, BLOCK_SIZE, BLOCK_SIZE)
+                        color = PIECE_COLORS[cell.shape_type]
+                        screen.draw.filled_rect(block_rect, color)
+                        screen.draw.rect(block_rect, GRID_BORDER)
+                elif hasattr(cell, 'sprite') and cell.sprite:
+                    # Old system: use the block's pre-loaded sprite (no rotation)
+                    screen.blit(cell.sprite, (block_x, block_y))
+                elif hasattr(cell, 'shape_type'):
+                    # Block object without sprite - use color fallback
+                    block_rect = Rect(block_x, block_y, BLOCK_SIZE, BLOCK_SIZE)
+                    color = PIECE_COLORS[cell.shape_type]
+                    screen.draw.filled_rect(block_rect, color)
+                    screen.draw.rect(block_rect, GRID_BORDER)
+                else:
+                    # Old system: cell is a shape_type string
+                    block_rect = Rect(block_x, block_y, BLOCK_SIZE, BLOCK_SIZE)
+                    color = PIECE_COLORS[cell]
+                    screen.draw.filled_rect(block_rect, color)
+                    screen.draw.rect(block_rect, GRID_BORDER)
     
     # Draw current falling piece
     current_piece = game_state['current_piece']
     if current_piece:
-        for bx, by in current_piece.get_blocks():
+        for (dx, dy), block in current_piece.blocks:
+            bx = current_piece.x + dx
+            by = current_piece.y + dy
             if by >= 0:  # Only draw blocks that are visible
-                block_rect = Rect(
-                    GRID_X + bx * BLOCK_SIZE,
-                    GRID_Y + by * BLOCK_SIZE,
-                    BLOCK_SIZE,
-                    BLOCK_SIZE
-                )
-                screen.draw.filled_rect(block_rect, current_piece.color)
-                screen.draw.rect(block_rect, GRID_BORDER)
+                block_x = GRID_X + bx * BLOCK_SIZE
+                block_y = GRID_Y + by * BLOCK_SIZE
+                
+                # Use the block's rotated sprite, fallback to color
+                if hasattr(block, 'rotation'):
+                    # Get rotated sprite from sprite_manager
+                    rotated_sprite = sprite_manager.get_block_sprite(
+                        block.shape_type, block.sprite_dx, block.sprite_dy, block.rotation
+                    )
+                    if rotated_sprite:
+                        screen.blit(rotated_sprite, (block_x, block_y))
+                    else:
+                        # Fallback to colored blocks
+                        block_rect = Rect(block_x, block_y, BLOCK_SIZE, BLOCK_SIZE)
+                        screen.draw.filled_rect(block_rect, current_piece.color)
+                        screen.draw.rect(block_rect, GRID_BORDER)
+                elif block.sprite:
+                    # Old system without rotation
+                    screen.blit(block.sprite, (block_x, block_y))
+                else:
+                    # Fallback to colored blocks
+                    block_rect = Rect(block_x, block_y, BLOCK_SIZE, BLOCK_SIZE)
+                    screen.draw.filled_rect(block_rect, current_piece.color)
+                    screen.draw.rect(block_rect, GRID_BORDER)
     
     # Draw UI panel labels
     screen.draw.text(
@@ -144,15 +253,31 @@ def draw():
         preview_offset_x = NEXT_PIECE_BOX.x + (NEXT_PIECE_BOX.width - piece_width) // 2 - min_x * BLOCK_SIZE
         preview_offset_y = NEXT_PIECE_BOX.y + (NEXT_PIECE_BOX.height - piece_height) // 2 - min_y * BLOCK_SIZE
         
-        for dx, dy in next_piece.shape:
-            block_rect = Rect(
-                preview_offset_x + dx * BLOCK_SIZE,
-                preview_offset_y + dy * BLOCK_SIZE,
-                BLOCK_SIZE,
-                BLOCK_SIZE
-            )
-            screen.draw.filled_rect(block_rect, next_piece.color)
-            screen.draw.rect(block_rect, GRID_BORDER)
+        for (dx, dy), block in next_piece.blocks:
+            block_x = preview_offset_x + dx * BLOCK_SIZE
+            block_y = preview_offset_y + dy * BLOCK_SIZE
+            
+            # Use the block's rotated sprite, fallback to color
+            if hasattr(block, 'rotation'):
+                # Get rotated sprite from sprite_manager
+                rotated_sprite = sprite_manager.get_block_sprite(
+                    block.shape_type, block.sprite_dx, block.sprite_dy, block.rotation
+                )
+                if rotated_sprite:
+                    screen.blit(rotated_sprite, (block_x, block_y))
+                else:
+                    # Fallback to colored blocks
+                    block_rect = Rect(block_x, block_y, BLOCK_SIZE, BLOCK_SIZE)
+                    screen.draw.filled_rect(block_rect, next_piece.color)
+                    screen.draw.rect(block_rect, GRID_BORDER)
+            elif block.sprite:
+                # Old system without rotation
+                screen.blit(block.sprite, (block_x, block_y))
+            else:
+                # Fallback to colored blocks
+                block_rect = Rect(block_x, block_y, BLOCK_SIZE, BLOCK_SIZE)
+                screen.draw.filled_rect(block_rect, next_piece.color)
+                screen.draw.rect(block_rect, GRID_BORDER)
     
     # Draw score display
     screen.draw.text(
@@ -241,7 +366,7 @@ def update(dt):
     
     # Initialize the first piece if needed
     if game_state['current_piece'] is None:
-        spawn_piece(game_state, grid)
+        spawn_piece(game_state, grid, sprite_manager)
         return
     
     # Update fall timer
@@ -262,7 +387,7 @@ def update(dt):
             completed_lines = check_lines(grid)
             clear_lines(completed_lines, grid, game_state)
             
-            spawn_piece(game_state, grid)
+            spawn_piece(game_state, grid, sprite_manager)
 
 
 def on_key_down(key):
@@ -300,7 +425,7 @@ def on_key_down(key):
     # Rotate
     elif key == keys.UP:
         # Save current state in case rotation fails
-        old_shape = current_piece.shape.copy()
+        old_blocks = [((dx, dy), block) for (dx, dy), block in current_piece.blocks]
         current_piece.rotate()
         
         # Check if rotation is valid
@@ -317,7 +442,7 @@ def on_key_down(key):
             
             # If no wall kick worked, revert rotation
             if not kick_successful:
-                current_piece.shape = old_shape
+                current_piece.blocks = old_blocks
     
     # Soft drop (move down faster)
     elif key == keys.DOWN:
@@ -345,7 +470,7 @@ def on_key_down(key):
         completed_lines = check_lines(grid)
         clear_lines(completed_lines, grid, game_state)
         
-        spawn_piece(game_state, grid)
+        spawn_piece(game_state, grid, sprite_manager)
 
 
 # Run the game

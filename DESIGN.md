@@ -344,13 +344,13 @@ SHAPES = {
 - [x] Add level progression
 - [x] Implement game over detection
 
-### Phase 4: UI & Graphics
-- [ ] Create placeholder sprites (colored blocks)
-- [ ] Design cleaning furniture sprites
-- [ ] Implement sprite rendering (48x48 pixel blocks)
-- [ ] Add UI elements (score, level, next piece)
-- [ ] Add HaHa Hausservice Haubenhofer logo
-- [ ] Polish visual appearance with brand colors
+### Phase 4: UI & Graphics ✓ (Completed)
+- [x] Create placeholder sprites (colored blocks)
+- [x] Design cleaning furniture sprites
+- [x] Implement sprite rendering (48x48 pixel blocks)
+- [x] Add UI elements (score, level, next piece)
+- [x] Add HaHa Hausservice Haubenhofer logo
+- [x] Polish visual appearance with brand colors
 
 ### Phase 5: Polish & Testing
 - [x] Add controls display
@@ -399,6 +399,6 @@ The game will be considered complete when:
 
 ---
 
-**Document Version:** 2.3  
+**Document Version:** 2.4  
 **Last Updated:** 2026-01-29  
-**Status:** Phase 3 Complete + Phase 5 Testing Complete - Architecture refactored for Pygame Zero compatibility
+**Status:** Phase 4 Complete - Sprite rendering implemented with furniture-themed pieces
