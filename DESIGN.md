@@ -311,12 +311,12 @@ SHAPES = {
 - [x] Implement piece rotation
 - [x] Add piece locking to grid
 
-### Phase 3: Line Clearing & Scoring
-- [ ] Implement line detection
-- [ ] Add line clearing animation
-- [ ] Create scoring system
-- [ ] Add level progression
-- [ ] Implement game over detection
+### Phase 3: Line Clearing & Scoring ✓ (Completed)
+- [x] Implement line detection
+- [x] Add line clearing animation
+- [x] Create scoring system
+- [x] Add level progression
+- [x] Implement game over detection
 
 ### Phase 4: UI & Graphics
 - [ ] Create placeholder sprites (colored blocks)
@@ -373,6 +373,6 @@ The game will be considered complete when:
 
 ---
 
-**Document Version:** 2.0  
+**Document Version:** 2.1  
 **Last Updated:** 2026-01-29  
-**Status:** Planning Phase - Updated with 48x48 blocks and revised sprite mappings
+**Status:** Phase 3 Complete - Line Clearing, Scoring & Level Progression Implemented
