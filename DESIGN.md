@@ -303,13 +303,13 @@ SHAPES = {
 - [ ] Install Pygame Zero
 - [ ] Create basic window
 
-### Phase 2: Game Logic
-- [ ] Implement grid system
-- [ ] Create piece class with basic shapes
-- [ ] Implement piece movement (left, right, down)
-- [ ] Add collision detection
-- [ ] Implement piece rotation
-- [ ] Add piece locking to grid
+### Phase 2: Game Logic ✓ (Completed)
+- [x] Implement grid system
+- [x] Create piece class with basic shapes
+- [x] Implement piece movement (left, right, down)
+- [x] Add collision detection
+- [x] Implement piece rotation
+- [x] Add piece locking to grid
 
 ### Phase 3: Line Clearing & Scoring
 - [ ] Implement line detection
