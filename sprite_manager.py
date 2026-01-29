@@ -3,7 +3,8 @@ Sprite manager for loading and managing furniture piece sprites
 """
 
 import os
-from pygame import image, transform, Surface
+import pygame
+from pygame import image, transform, Surface, SRCALPHA
 
 # Mapping of shape types to sprite filenames
 SPRITE_FILES = {
@@ -47,38 +48,40 @@ class SpriteManager:
     def _create_block_sprites(self):
         """
         Create 48x48 block sprites from the full piece sprites.
-        This extracts a representative portion of each sprite to use for individual blocks.
+        Extracts representative portions of each multi-block sprite for individual rendering.
+        
+        Extraction strategy:
+        - I-piece (Desk): First segment of 4-block horizontal sprite
+        - O-piece (Printer): Top-left quadrant of 2x2 sprite
+        - T/S/Z pieces: Middle block from 3-block width sprites
+        - L/J pieces: Bottom block from vertical portion
         """
         BLOCK_SIZE = 48
         
         for shape_type, sprite in self.sprites.items():
-            # For individual blocks, we'll use a scaled-down version of the full sprite
-            # or extract a representative portion
+            # Create a new surface for the block
+            block = Surface((BLOCK_SIZE, BLOCK_SIZE), SRCALPHA)
             
+            # Extract representative portion based on piece type
             if shape_type == 'I':
                 # Desk: extract one segment from the 4-block sprite
-                block = Surface((BLOCK_SIZE, BLOCK_SIZE), sprite.get_flags(), sprite)
                 block.blit(sprite, (0, 0), (0, 0, BLOCK_SIZE, BLOCK_SIZE))
                 
             elif shape_type == 'O':
                 # Printer: use one quadrant of the 2x2 sprite
-                block = Surface((BLOCK_SIZE, BLOCK_SIZE), sprite.get_flags(), sprite)
                 block.blit(sprite, (0, 0), (0, 0, BLOCK_SIZE, BLOCK_SIZE))
                 
             elif shape_type in ['T', 'S', 'Z']:
-                # Extract a representative block from the sprite
-                block = Surface((BLOCK_SIZE, BLOCK_SIZE), sprite.get_flags(), sprite)
+                # Extract middle block from the sprite
                 block.blit(sprite, (0, 0), (BLOCK_SIZE, 0, BLOCK_SIZE, BLOCK_SIZE))
                 
             else:  # L, J shapes
-                # Extract a representative block
-                block = Surface((BLOCK_SIZE, BLOCK_SIZE), sprite.get_flags(), sprite)
+                # Extract bottom block from vertical portion
                 block.blit(sprite, (0, 0), (0, BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
             
             # Add a subtle border to make blocks distinct
-            from pygame import draw as pg_draw
             border_color = (100, 100, 100)
-            pg_draw.rect(block, border_color, (0, 0, BLOCK_SIZE, BLOCK_SIZE), 1)
+            pygame.draw.rect(block, border_color, (0, 0, BLOCK_SIZE, BLOCK_SIZE), 1)
             
             self.block_sprites[shape_type] = block
     

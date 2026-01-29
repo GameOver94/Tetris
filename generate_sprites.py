@@ -59,7 +59,7 @@ def create_desk_sprite():
         text = text_font.render("DESK", True, WHITE)
         text_rect = text.get_rect(center=(BLOCK_SIZE * 2, BLOCK_SIZE - 8))
         sprite.blit(text, text_rect)
-    except:
+    except Exception:
         pass
     
     return sprite
@@ -98,7 +98,7 @@ def create_printer_sprite():
         text = text_font.render("PRINTER", True, DARK_TEXT)
         text_rect = text.get_rect(center=(BLOCK_SIZE, 10))
         sprite.blit(text, text_rect)
-    except:
+    except Exception:
         pass
     
     return sprite
@@ -126,7 +126,7 @@ def create_shower_sprite():
         text = text_font.render("SHOWER", True, DARK_TEXT)
         text_rect = text.get_rect(center=(BLOCK_SIZE * 1.5, BLOCK_SIZE * 2 - 10))
         sprite.blit(text, text_rect)
-    except:
+    except Exception:
         pass
     
     return sprite
@@ -153,7 +153,7 @@ def create_chair_sprite():
         text = text_font.render("CHAIR", True, WHITE)
         text_rect = text.get_rect(center=(BLOCK_SIZE // 2, BLOCK_SIZE))
         sprite.blit(text, text_rect)
-    except:
+    except Exception:
         pass
     
     return sprite
@@ -181,7 +181,7 @@ def create_cabinet_sprite():
         text = text_font.render("CABINET", True, WHITE)
         text_rect = text.get_rect(center=(BLOCK_SIZE * 1.5, BLOCK_SIZE * 2 + 20))
         sprite.blit(text, text_rect)
-    except:
+    except Exception:
         pass
     
     return sprite
@@ -209,7 +209,7 @@ def create_sink_sprite():
         text = text_font.render("SINK", True, DARK_TEXT)
         text_rect = text.get_rect(center=(BLOCK_SIZE * 1.5, BLOCK_SIZE * 2 - 10))
         sprite.blit(text, text_rect)
-    except:
+    except Exception:
         pass
     
     return sprite
@@ -235,7 +235,7 @@ def create_toilet_sprite():
         text = text_font.render("TOILET", True, DARK_TEXT)
         text_rect = text.get_rect(center=(BLOCK_SIZE * 1.5, BLOCK_SIZE * 2 - 10))
         sprite.blit(text, text_rect)
-    except:
+    except Exception:
         pass
     
     return sprite
