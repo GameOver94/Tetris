@@ -197,10 +197,11 @@ class TestPieceLocking:
         lock_piece(piece, grid)
         
         # O-piece at (4,18) should occupy (4,18), (5,18), (4,19), (5,19)
-        assert grid[18][4] == 'O'
-        assert grid[18][5] == 'O'
-        assert grid[19][4] == 'O'
-        assert grid[19][5] == 'O'
+        # Grid now contains Block objects
+        assert grid[18][4].shape_type == 'O'
+        assert grid[18][5].shape_type == 'O'
+        assert grid[19][4].shape_type == 'O'
+        assert grid[19][5].shape_type == 'O'
     
     def test_lock_piece_partial(self):
         """Test that pieces above grid (negative y) don't lock those blocks"""
@@ -219,9 +220,10 @@ class TestPieceLocking:
         lock_piece(piece, grid)
         
         # Only blocks with y >= 0 should be locked
-        assert grid[0][3] == 'I'
-        assert grid[1][3] == 'I'
-        assert grid[2][3] == 'I'
+        # Grid now contains Block objects
+        assert grid[0][3].shape_type == 'I'
+        assert grid[1][3].shape_type == 'I'
+        assert grid[2][3].shape_type == 'I'
 
 
 class TestLineClearing:
@@ -512,9 +514,10 @@ class TestIntegration:
         lock_piece(current_piece, grid)
         
         # Verify piece is locked
+        # Grid now contains Block objects instead of shape_type strings
         for bx, by in current_piece.get_blocks():
             if by >= 0 and by < GRID_HEIGHT:
-                assert grid[by][bx] == current_piece.shape_type
+                assert grid[by][bx].shape_type == current_piece.shape_type
     
     def test_multiple_pieces_and_line_clear(self):
         """Test spawning multiple pieces and clearing a line"""

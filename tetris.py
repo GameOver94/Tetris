@@ -157,38 +157,41 @@ def draw():
     # Draw locked pieces on the grid
     for y in range(GRID_HEIGHT):
         for x in range(GRID_WIDTH):
-            if grid[y][x] != 0:
-                piece_type = grid[y][x]
+            cell = grid[y][x]
+            if cell != 0:
                 block_x = GRID_X + x * BLOCK_SIZE
                 block_y = GRID_Y + y * BLOCK_SIZE
                 
-                # Try to use representative sprite, fallback to color
-                sprite = sprite_manager.get_representative_block_sprite(piece_type)
-                if sprite:
-                    screen.blit(sprite, (block_x, block_y))
-                else:
-                    # Fallback to colored blocks
+                # Check if cell contains a Block object (new system) or just a string (old system)
+                if hasattr(cell, 'sprite') and cell.sprite:
+                    # New system: use the block's pre-loaded sprite
+                    screen.blit(cell.sprite, (block_x, block_y))
+                elif hasattr(cell, 'shape_type'):
+                    # Block object without sprite - use color fallback
                     block_rect = Rect(block_x, block_y, BLOCK_SIZE, BLOCK_SIZE)
-                    color = PIECE_COLORS[piece_type]
+                    color = PIECE_COLORS[cell.shape_type]
+                    screen.draw.filled_rect(block_rect, color)
+                    screen.draw.rect(block_rect, GRID_BORDER)
+                else:
+                    # Old system: cell is a shape_type string
+                    block_rect = Rect(block_x, block_y, BLOCK_SIZE, BLOCK_SIZE)
+                    color = PIECE_COLORS[cell]
                     screen.draw.filled_rect(block_rect, color)
                     screen.draw.rect(block_rect, GRID_BORDER)
     
     # Draw current falling piece
     current_piece = game_state['current_piece']
     if current_piece:
-        for dx, dy in current_piece.shape:
+        for (dx, dy), block in current_piece.blocks:
             bx = current_piece.x + dx
             by = current_piece.y + dy
             if by >= 0:  # Only draw blocks that are visible
                 block_x = GRID_X + bx * BLOCK_SIZE
                 block_y = GRID_Y + by * BLOCK_SIZE
                 
-                # Try to use sprite with proper tiling, fallback to color
-                sprite = sprite_manager.get_block_sprite_at_position(
-                    current_piece.shape_type, dx, dy
-                )
-                if sprite:
-                    screen.blit(sprite, (block_x, block_y))
+                # Use the block's pre-loaded sprite, fallback to color
+                if block.sprite:
+                    screen.blit(block.sprite, (block_x, block_y))
                 else:
                     # Fallback to colored blocks
                     block_rect = Rect(block_x, block_y, BLOCK_SIZE, BLOCK_SIZE)
@@ -224,16 +227,13 @@ def draw():
         preview_offset_x = NEXT_PIECE_BOX.x + (NEXT_PIECE_BOX.width - piece_width) // 2 - min_x * BLOCK_SIZE
         preview_offset_y = NEXT_PIECE_BOX.y + (NEXT_PIECE_BOX.height - piece_height) // 2 - min_y * BLOCK_SIZE
         
-        for dx, dy in next_piece.shape:
+        for (dx, dy), block in next_piece.blocks:
             block_x = preview_offset_x + dx * BLOCK_SIZE
             block_y = preview_offset_y + dy * BLOCK_SIZE
             
-            # Try to use sprite with proper tiling, fallback to color
-            sprite = sprite_manager.get_block_sprite_at_position(
-                next_piece.shape_type, dx, dy
-            )
-            if sprite:
-                screen.blit(sprite, (block_x, block_y))
+            # Use the block's pre-loaded sprite, fallback to color
+            if block.sprite:
+                screen.blit(block.sprite, (block_x, block_y))
             else:
                 # Fallback to colored blocks
                 block_rect = Rect(block_x, block_y, BLOCK_SIZE, BLOCK_SIZE)
@@ -327,7 +327,7 @@ def update(dt):
     
     # Initialize the first piece if needed
     if game_state['current_piece'] is None:
-        spawn_piece(game_state, grid)
+        spawn_piece(game_state, grid, sprite_manager)
         return
     
     # Update fall timer
@@ -348,7 +348,7 @@ def update(dt):
             completed_lines = check_lines(grid)
             clear_lines(completed_lines, grid, game_state)
             
-            spawn_piece(game_state, grid)
+            spawn_piece(game_state, grid, sprite_manager)
 
 
 def on_key_down(key):
@@ -431,7 +431,7 @@ def on_key_down(key):
         completed_lines = check_lines(grid)
         clear_lines(completed_lines, grid, game_state)
         
-        spawn_piece(game_state, grid)
+        spawn_piece(game_state, grid, sprite_manager)
 
 
 # Run the game
