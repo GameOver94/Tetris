@@ -172,7 +172,15 @@ class SoundManager:
         """Toggle music on/off"""
         self.music_enabled = not self.music_enabled
         if self.music_enabled:
-            self.play_music()
+            # Only try to play if we actually have music loaded
+            # Check if music is loaded by trying to get its position
+            try:
+                # If music was loaded successfully, this won't raise an error
+                if os.path.exists(BACKGROUND_MUSIC):
+                    self.play_music()
+            except Exception:
+                # Music not loaded, silently skip
+                pass
         else:
             self.stop_music()
     

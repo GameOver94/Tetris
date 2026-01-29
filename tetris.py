@@ -139,7 +139,7 @@ def draw_start_menu():
     
     # Draw title
     screen.draw.text(
-        "HAHA HAUSSERVICE HAUBENHOFER",
+        "HaHa HAUSSERVICE HAUBENHOFER",
         center=(WIDTH // 2, 150),
         fontsize=40,
         color=PRIMARY_ACCENT
@@ -228,6 +228,50 @@ def draw_pause_menu():
         fontsize=20,
         color=(255, 255, 255)
     )
+
+
+def handle_piece_lock():
+    """
+    Handle locking a piece and all related effects.
+    Returns True if game is over, False otherwise.
+    """
+    # Lock the piece
+    lock_piece(game_state['current_piece'], grid)
+    sound_manager.play_sound('lock')
+    
+    # Check and clear any completed lines
+    completed_lines = check_lines(grid)
+    if completed_lines:
+        # Track level before clearing lines
+        old_level = game_state['level']
+        
+        # Start line clear effect animation
+        game_state['line_clear_effect'] = [(line_idx, 0.0) for line_idx in completed_lines]
+        
+        # Play appropriate sound based on number of lines
+        if len(completed_lines) >= 4:
+            sound_manager.play_sound('tetris')
+        else:
+            sound_manager.play_sound('line_clear')
+        
+        clear_lines(completed_lines, grid, game_state)
+        
+        # Check if we leveled up
+        if game_state['level'] > old_level:
+            sound_manager.play_sound('level_up')
+    
+    # Spawn new piece
+    spawn_piece(game_state, grid, sprite_manager)
+    
+    # Check if game over and handle it
+    if game_state['game_over']:
+        sound_manager.play_sound('game_over')
+        sound_manager.stop_music()
+        # Check and save high score
+        game_state['is_new_high_score'] = highscore_manager.save(game_state['score'])
+        return True
+    
+    return False
 
 
 def draw():
@@ -552,39 +596,8 @@ def update(dt):
         if not check_collision(game_state['current_piece'], grid, 0, 1):
             game_state['current_piece'].move(0, 1)
         else:
-            # Piece can't move down - lock it and spawn new piece
-            lock_piece(game_state['current_piece'], grid)
-            sound_manager.play_sound('lock')
-            
-            # Check and clear any completed lines
-            completed_lines = check_lines(grid)
-            if completed_lines:
-                # Track level before clearing lines
-                old_level = game_state['level']
-                
-                # Start line clear effect animation
-                game_state['line_clear_effect'] = [(line_idx, 0.0) for line_idx in completed_lines]
-                
-                # Play appropriate sound based on number of lines
-                if len(completed_lines) >= 4:
-                    sound_manager.play_sound('tetris')
-                else:
-                    sound_manager.play_sound('line_clear')
-                
-                clear_lines(completed_lines, grid, game_state)
-                
-                # Check if we leveled up
-                if game_state['level'] > old_level:
-                    sound_manager.play_sound('level_up')
-            
-            spawn_piece(game_state, grid, sprite_manager)
-            
-            # Check if game over and save high score
-            if game_state['game_over']:
-                sound_manager.play_sound('game_over')
-                sound_manager.stop_music()
-                # Check and save high score
-                game_state['is_new_high_score'] = highscore_manager.save(game_state['score'])
+            # Piece can't move down - handle locking and effects
+            handle_piece_lock()
 
 
 def on_key_down(key):
@@ -700,25 +713,8 @@ def on_key_down(key):
         # Add hard drop score (2 points per cell)
         game_state['score'] += cells_dropped * SCORE_HARD_DROP
         
-        # Lock the piece and spawn new one
-        lock_piece(current_piece, grid)
-        sound_manager.play_sound('lock')
-        
-        # Check and clear any completed lines
-        completed_lines = check_lines(grid)
-        if completed_lines:
-            # Start line clear effect animation
-            game_state['line_clear_effect'] = [(line_idx, 0.0) for line_idx in completed_lines]
-            
-            # Play appropriate sound based on number of lines
-            if len(completed_lines) >= 4:
-                sound_manager.play_sound('tetris')
-            else:
-                sound_manager.play_sound('line_clear')
-        
-        clear_lines(completed_lines, grid, game_state)
-        
-        spawn_piece(game_state, grid, sprite_manager)
+        # Handle piece locking and all related effects
+        handle_piece_lock()
 
 
 # Run the game
