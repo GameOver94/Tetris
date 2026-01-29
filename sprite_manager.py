@@ -23,7 +23,6 @@ class SpriteManager:
     def __init__(self):
         """Initialize sprite manager"""
         self.sprites = {}
-        self.block_sprites = {}  # 48x48 block sprites for each piece type
         self.use_sprites = True
         
     def load_sprites(self):
@@ -33,63 +32,79 @@ class SpriteManager:
                 try:
                     sprite = image.load(filepath)
                     self.sprites[shape_type] = sprite
-                    print(f"Loaded sprite for {shape_type}: {filepath}")
+                    print(f"Loaded sprite for {shape_type}: {filepath} ({sprite.get_width()}x{sprite.get_height()})")
                 except Exception as e:
                     print(f"Error loading sprite {filepath}: {e}")
                     self.use_sprites = False
             else:
                 print(f"Sprite file not found: {filepath}")
                 self.use_sprites = False
-        
-        # Create individual block sprites from the full piece sprites
-        if self.use_sprites:
-            self._create_block_sprites()
             
-    def _create_block_sprites(self):
+    def get_block_sprite_at_position(self, shape_type, dx, dy):
         """
-        Create 48x48 block sprites from the full piece sprites.
-        Extracts representative portions of each multi-block sprite for individual rendering.
+        Get the 48x48 sprite for a specific block position within a piece.
         
-        Extraction strategy:
-        - I-piece (Desk): First segment of 4-block horizontal sprite
-        - O-piece (Printer): Top-left quadrant of 2x2 sprite
-        - T/S/Z pieces: Middle block from 3-block width sprites
-        - L/J pieces: Bottom block from vertical portion
+        Args:
+            shape_type: The type of piece ('I', 'O', 'T', 'L', 'J', 'S', 'Z')
+            dx: X offset of the block within the piece shape (from SHAPES definition)
+            dy: Y offset of the block within the piece shape (from SHAPES definition)
+            
+        Returns:
+            A 48x48 Surface with the appropriate portion of the sprite, or None
         """
         BLOCK_SIZE = 48
         
-        for shape_type, sprite in self.sprites.items():
-            # Create a new surface for the block
-            block = Surface((BLOCK_SIZE, BLOCK_SIZE), SRCALPHA)
-            
-            # Extract representative portion based on piece type
-            if shape_type == 'I':
-                # Desk: extract one segment from the 4-block sprite
-                block.blit(sprite, (0, 0), (0, 0, BLOCK_SIZE, BLOCK_SIZE))
-                
-            elif shape_type == 'O':
-                # Printer: use one quadrant of the 2x2 sprite
-                block.blit(sprite, (0, 0), (0, 0, BLOCK_SIZE, BLOCK_SIZE))
-                
-            elif shape_type in ['T', 'S', 'Z']:
-                # Extract middle block from the sprite
-                block.blit(sprite, (0, 0), (BLOCK_SIZE, 0, BLOCK_SIZE, BLOCK_SIZE))
-                
-            else:  # L, J shapes
-                # Extract bottom block from vertical portion
-                block.blit(sprite, (0, 0), (0, BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
+        if not self.use_sprites or shape_type not in self.sprites:
+            return None
+        
+        sprite = self.sprites[shape_type]
+        
+        # Create a new surface for this specific block
+        block = Surface((BLOCK_SIZE, BLOCK_SIZE), SRCALPHA)
+        
+        # Calculate the position in the sprite to extract from
+        # The sprite coordinates match the block coordinates in the piece shape
+        sprite_x = dx * BLOCK_SIZE
+        sprite_y = dy * BLOCK_SIZE
+        
+        # Extract the appropriate 48x48 portion from the full sprite
+        try:
+            block.blit(sprite, (0, 0), (sprite_x, sprite_y, BLOCK_SIZE, BLOCK_SIZE))
             
             # Add a subtle border to make blocks distinct
             border_color = (100, 100, 100)
             pygame.draw.rect(block, border_color, (0, 0, BLOCK_SIZE, BLOCK_SIZE), 1)
             
-            self.block_sprites[shape_type] = block
+            return block
+        except Exception as e:
+            print(f"Error extracting sprite at ({dx}, {dy}) for {shape_type}: {e}")
+            return None
     
-    def get_block_sprite(self, shape_type):
-        """Get the 48x48 sprite for a single block of the given piece type"""
-        if self.use_sprites and shape_type in self.block_sprites:
-            return self.block_sprites[shape_type]
-        return None
+    def get_representative_block_sprite(self, shape_type):
+        """
+        Get a representative 48x48 sprite for locked pieces.
+        Uses a visually interesting portion of the sprite.
+        
+        Args:
+            shape_type: The type of piece ('I', 'O', 'T', 'L', 'J', 'S', 'Z')
+            
+        Returns:
+            A 48x48 Surface with a representative portion of the sprite, or None
+        """
+        # For locked pieces, use a representative block position
+        # This provides visual variety while maintaining recognizability
+        representative_positions = {
+            'I': (1, 0),  # Second segment of desk
+            'O': (0, 0),  # Top-left of printer
+            'T': (1, 0),  # Middle of shower
+            'L': (0, 1),  # Middle of chair
+            'J': (0, 1),  # Middle of cabinet  
+            'S': (1, 0),  # Middle of sink
+            'Z': (1, 0),  # Middle of toilet
+        }
+        
+        dx, dy = representative_positions.get(shape_type, (0, 0))
+        return self.get_block_sprite_at_position(shape_type, dx, dy)
     
     def has_sprites(self):
         """Check if sprites are loaded and ready to use"""

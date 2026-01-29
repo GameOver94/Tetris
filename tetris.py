@@ -162,8 +162,8 @@ def draw():
                 block_x = GRID_X + x * BLOCK_SIZE
                 block_y = GRID_Y + y * BLOCK_SIZE
                 
-                # Try to use sprite, fallback to color
-                sprite = sprite_manager.get_block_sprite(piece_type)
+                # Try to use representative sprite, fallback to color
+                sprite = sprite_manager.get_representative_block_sprite(piece_type)
                 if sprite:
                     screen.blit(sprite, (block_x, block_y))
                 else:
@@ -176,13 +176,17 @@ def draw():
     # Draw current falling piece
     current_piece = game_state['current_piece']
     if current_piece:
-        for bx, by in current_piece.get_blocks():
+        for dx, dy in current_piece.shape:
+            bx = current_piece.x + dx
+            by = current_piece.y + dy
             if by >= 0:  # Only draw blocks that are visible
                 block_x = GRID_X + bx * BLOCK_SIZE
                 block_y = GRID_Y + by * BLOCK_SIZE
                 
-                # Try to use sprite, fallback to color
-                sprite = sprite_manager.get_block_sprite(current_piece.shape_type)
+                # Try to use sprite with proper tiling, fallback to color
+                sprite = sprite_manager.get_block_sprite_at_position(
+                    current_piece.shape_type, dx, dy
+                )
                 if sprite:
                     screen.blit(sprite, (block_x, block_y))
                 else:
@@ -224,8 +228,10 @@ def draw():
             block_x = preview_offset_x + dx * BLOCK_SIZE
             block_y = preview_offset_y + dy * BLOCK_SIZE
             
-            # Try to use sprite, fallback to color
-            sprite = sprite_manager.get_block_sprite(next_piece.shape_type)
+            # Try to use sprite with proper tiling, fallback to color
+            sprite = sprite_manager.get_block_sprite_at_position(
+                next_piece.shape_type, dx, dy
+            )
             if sprite:
                 screen.blit(sprite, (block_x, block_y))
             else:
