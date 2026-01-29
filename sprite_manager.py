@@ -98,7 +98,7 @@ class SpriteManager:
             'O': (0, 0),  # Top-left of printer
             'T': (1, 0),  # Middle of shower
             'L': (0, 1),  # Middle of chair
-            'J': (0, 1),  # Middle of cabinet  
+            'J': (1, 1),  # Middle of cabinet (fixed: was 0,1 which is invalid)
             'S': (1, 0),  # Middle of sink
             'Z': (1, 0),  # Middle of toilet
         }
