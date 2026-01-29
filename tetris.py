@@ -231,9 +231,19 @@ def draw():
     
     # Draw next piece preview
     if next_piece:
-        # Calculate center position for next piece
-        preview_offset_x = NEXT_PIECE_BOX.x + NEXT_PIECE_BOX.width // 2 - BLOCK_SIZE
-        preview_offset_y = NEXT_PIECE_BOX.y + NEXT_PIECE_BOX.height // 2 - BLOCK_SIZE
+        # Calculate the bounds of the piece
+        min_x = min(dx for dx, dy in next_piece.shape)
+        max_x = max(dx for dx, dy in next_piece.shape)
+        min_y = min(dy for dx, dy in next_piece.shape)
+        max_y = max(dy for dx, dy in next_piece.shape)
+        
+        # Calculate piece dimensions in pixels
+        piece_width = (max_x - min_x + 1) * BLOCK_SIZE
+        piece_height = (max_y - min_y + 1) * BLOCK_SIZE
+        
+        # Center the piece in the preview box
+        preview_offset_x = NEXT_PIECE_BOX.x + (NEXT_PIECE_BOX.width - piece_width) // 2 - min_x * BLOCK_SIZE
+        preview_offset_y = NEXT_PIECE_BOX.y + (NEXT_PIECE_BOX.height - piece_height) // 2 - min_y * BLOCK_SIZE
         
         for dx, dy in next_piece.shape:
             block_rect = Rect(

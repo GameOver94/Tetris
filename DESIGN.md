@@ -299,9 +299,9 @@ SHAPES = {
 
 ### Phase 1: Core Setup ✓ (Current Phase)
 - [x] Create design document
-- [ ] Set up project structure
-- [ ] Install Pygame Zero
-- [ ] Create basic window
+- [x] Set up project structure
+- [x] Install Pygame Zero
+- [x] Create basic window
 
 ### Phase 2: Game Logic ✓ (Completed)
 - [x] Implement grid system
