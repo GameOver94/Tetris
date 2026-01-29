@@ -6,6 +6,7 @@ Built with Pygame Zero
 """
 
 import pgzrun
+import os
 from pygame import Rect, transform, image
 from game_logic import (
     Piece, SHAPES, PIECE_COLORS, GRID_WIDTH, GRID_HEIGHT,
@@ -35,13 +36,12 @@ GRID_RECT = Rect(GRID_X, GRID_Y, GRID_WIDTH * BLOCK_SIZE, GRID_HEIGHT * BLOCK_SI
 NEXT_PIECE_BOX = Rect(950, 120, 240, 240)
 
 # Load and prepare logo
-logo_surface = None
+logo_surface = None  # Keep reference for potential future use (e.g., re-scaling)
 rotated_logo = None
 
 def load_logo():
     """Load and rotate the logo for the left panel"""
     global logo_surface, rotated_logo
-    import os
     
     # Try to load logo (prefer PNG placeholder, fallback to JPEG)
     logo_files = ['assets/logo_placeholder.png', 'assets/logo.png', 'assets/logo.jpeg']
@@ -54,7 +54,7 @@ def load_logo():
                 logo_loaded = True
                 print(f"Loaded logo from {logo_file}")
                 break
-            except Exception as e:
+            except (FileNotFoundError, IOError) as e:
                 print(f"Error loading {logo_file}: {e}")
     
     if not logo_loaded:
@@ -91,8 +91,8 @@ def load_logo():
         # Rotate 90 degrees clockwise
         rotated_logo = transform.rotate(scaled_logo, -90)
         
-    except Exception as e:
-        print(f"Error processing logo: {e}")
+    except (ValueError, TypeError) as e:
+        print(f"Error processing logo dimensions: {e}")
         rotated_logo = None
 
 # Game state
