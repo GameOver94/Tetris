@@ -10,7 +10,13 @@ pip install -r requirements.txt
 
 ## Running the Game
 
+You can run the game using either of these methods:
+
 ```bash
+# Method 1: Using pgzrun command (recommended)
+pgzrun tetris.py
+
+# Method 2: Using python directly
 python tetris.py
 ```
 
@@ -44,3 +50,11 @@ The test suite covers:
 - **Integration Tests**: Full game flow scenarios
 
 All tests use pytest and can be run without a display (headless mode).
+
+## Architecture
+
+The project is organized into separate modules:
+
+- **game_logic.py**: Pure game logic without display dependencies (testable)
+- **tetris.py**: Pygame Zero display and main game loop
+- **test_tetris.py**: Comprehensive test suite

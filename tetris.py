@@ -7,7 +7,11 @@ Built with Pygame Zero
 
 import pgzrun
 from pygame import Rect
-import random
+from game_logic import (
+    Piece, SHAPES, PIECE_COLORS, GRID_WIDTH, GRID_HEIGHT,
+    INITIAL_FALL_SPEED, SCORE_SOFT_DROP, SCORE_HARD_DROP,
+    check_collision, lock_piece, check_lines, clear_lines, spawn_piece
+)
 
 # Window configuration
 WIDTH = 1280
@@ -22,199 +26,26 @@ SECONDARY_ACCENT = (0, 153, 51)  # #009933 Green
 GRID_BORDER = (204, 204, 204)  # #CCCCCC Light gray
 GRID_BACKGROUND = (255, 255, 255)  # #FFFFFF White
 
-# Grid configuration
+# Grid configuration for display
 BLOCK_SIZE = 48  # 48x48 pixels per block
-GRID_WIDTH = 10  # 10 blocks wide
-GRID_HEIGHT = 20  # 20 blocks tall
 GRID_X = 400  # X position of game grid
 GRID_Y = 0  # Y position of game grid
 
 GRID_RECT = Rect(GRID_X, GRID_Y, GRID_WIDTH * BLOCK_SIZE, GRID_HEIGHT * BLOCK_SIZE)
 NEXT_PIECE_BOX = Rect(950, 120, 240, 240)
 
-# Tetromino shapes (office and bathroom furniture themed)
-SHAPES = {
-    'I': [(0, 0), (1, 0), (2, 0), (3, 0)],  # Desk
-    'O': [(0, 0), (1, 0), (0, 1), (1, 1)],  # Printer
-    'T': [(0, 0), (1, 0), (2, 0), (1, 1)],  # Shower
-    'L': [(0, 0), (0, 1), (0, 2), (1, 2)],  # Office Chair
-    'J': [(1, 0), (1, 1), (1, 2), (0, 2)],  # Cabinet
-    'S': [(1, 0), (2, 0), (0, 1), (1, 1)],  # Sink
-    'Z': [(0, 0), (1, 0), (1, 1), (2, 1)]   # Toilet
-}
-
-# Colors for each piece type
-PIECE_COLORS = {
-    'I': (0, 255, 255),    # Cyan
-    'O': (255, 255, 0),    # Yellow
-    'T': (128, 0, 128),    # Purple
-    'L': (255, 165, 0),    # Orange
-    'J': (0, 0, 255),      # Blue
-    'S': (0, 255, 0),      # Green
-    'Z': (255, 0, 0)       # Red
-}
-
-# Game timing
-INITIAL_FALL_SPEED = 0.5  # Initial seconds between automatic falls
-SPEED_MULTIPLIER = 0.9  # Speed multiplier per level (10% faster)
-
-# Scoring constants
-SCORE_SINGLE = 100
-SCORE_DOUBLE = 300
-SCORE_TRIPLE = 500
-SCORE_TETRIS = 800
-SCORE_SOFT_DROP = 1
-SCORE_HARD_DROP = 2
-
 # Game state
 grid = [[0 for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
-current_piece = None
-next_piece = None
-fall_timer = 0
-game_over = False
-score = 0
-level = 1
-lines_cleared = 0
-fall_speed = INITIAL_FALL_SPEED
-
-
-class Piece:
-    """Represents a Tetris piece (tetromino)"""
-    
-    def __init__(self, shape_type):
-        """Initialize a piece with a given shape type"""
-        self.shape_type = shape_type
-        self.shape = SHAPES[shape_type].copy()
-        self.color = PIECE_COLORS[shape_type]
-        # Spawn at top center of grid
-        self.x = GRID_WIDTH // 2 - 2
-        self.y = 0
-    
-    def get_blocks(self):
-        """Get the absolute positions of all blocks in this piece"""
-        return [(self.x + dx, self.y + dy) for dx, dy in self.shape]
-    
-    def move(self, dx, dy):
-        """Move the piece by the given offset"""
-        self.x += dx
-        self.y += dy
-    
-    def rotate(self):
-        """Rotate the piece 90 degrees clockwise"""
-        # Don't rotate O-piece (it's a square)
-        if self.shape_type == 'O':
-            return
-        
-        # Rotate each block around the origin
-        # (x, y) -> (y, -x) for 90-degree clockwise rotation
-        rotated = [(dy, -dx) for dx, dy in self.shape]
-        
-        # Normalize to keep top-left aligned
-        min_x = min(x for x, y in rotated)
-        min_y = min(y for x, y in rotated)
-        self.shape = [(x - min_x, y - min_y) for x, y in rotated]
-
-
-def check_collision(piece, dx=0, dy=0):
-    """Check if the piece would collide with the grid or boundaries at the new position"""
-    for bx, by in piece.get_blocks():
-        new_x = bx + dx
-        new_y = by + dy
-        
-        # Check boundaries
-        if new_x < 0 or new_x >= GRID_WIDTH:
-            return True
-        if new_y >= GRID_HEIGHT:
-            return True
-        
-        # Check collision with locked pieces (only if within grid)
-        if new_y >= 0 and grid[new_y][new_x] != 0:
-            return True
-    
-    return False
-
-
-def lock_piece(piece):
-    """Lock the current piece into the grid"""
-    for bx, by in piece.get_blocks():
-        if by >= 0:  # Only lock blocks that are visible
-            grid[by][bx] = piece.shape_type
-
-
-def check_lines():
-    """Check for completed lines and return a list of line indices to clear"""
-    lines_to_clear = []
-    
-    # Check each row from bottom to top
-    for y in range(GRID_HEIGHT):
-        if all(grid[y][x] != 0 for x in range(GRID_WIDTH)):
-            lines_to_clear.append(y)
-    
-    return lines_to_clear
-
-
-def clear_lines(lines_to_clear):
-    """Clear completed lines and move rows down"""
-    global grid, score, level, lines_cleared, fall_speed
-    
-    if not lines_to_clear:
-        return
-    
-    # Sort lines in descending order (bottom to top, highest index first)
-    # This ensures we delete from bottom to top so indices don't shift
-    lines_to_clear.sort(reverse=True)
-    
-    # Remove completed lines from bottom to top
-    for y in lines_to_clear:
-        del grid[y]
-    
-    # Add empty lines at the top for each cleared line
-    for _ in range(len(lines_to_clear)):
-        grid.insert(0, [0 for _ in range(GRID_WIDTH)])
-    
-    # Update lines cleared count
-    num_lines = len(lines_to_clear)
-    lines_cleared += num_lines
-    
-    # Calculate score based on number of lines cleared (1-4 lines standard in Tetris)
-    if num_lines == 1:
-        score += SCORE_SINGLE * level
-    elif num_lines == 2:
-        score += SCORE_DOUBLE * level
-    elif num_lines == 3:
-        score += SCORE_TRIPLE * level
-    elif num_lines >= 4:  # 4 or more lines (Tetris)
-        score += SCORE_TETRIS * level
-    
-    # Level up every 10 lines
-    new_level = (lines_cleared // 10) + 1
-    if new_level > level and new_level <= 15:  # Max level 15
-        level = new_level
-        # Increase fall speed by 10% each level
-        fall_speed = INITIAL_FALL_SPEED * (SPEED_MULTIPLIER ** (level - 1))
-
-
-def spawn_piece():
-    """Spawn a new piece"""
-    global current_piece, next_piece, game_over, fall_timer
-    
-    if next_piece is None:
-        # First piece - create both current and next
-        current_piece = Piece(random.choice(list(SHAPES.keys())))
-        next_piece = Piece(random.choice(list(SHAPES.keys())))
-    else:
-        # Use the next piece as current, generate new next
-        current_piece = next_piece
-        current_piece.x = GRID_WIDTH // 2 - 2
-        current_piece.y = 0
-        next_piece = Piece(random.choice(list(SHAPES.keys())))
-        
-        # Check for game over - if new piece collides immediately
-        if check_collision(current_piece, 0, 0):
-            game_over = True
-    
-    # Reset fall timer for consistent timing
-    fall_timer = 0
+game_state = {
+    'current_piece': None,
+    'next_piece': None,
+    'fall_timer': 0,
+    'game_over': False,
+    'score': 0,
+    'level': 1,
+    'lines_cleared': 0,
+    'fall_speed': INITIAL_FALL_SPEED
+}
 
 
 def draw():
@@ -271,6 +102,7 @@ def draw():
                 screen.draw.rect(block_rect, GRID_BORDER)
     
     # Draw current falling piece
+    current_piece = game_state['current_piece']
     if current_piece:
         for bx, by in current_piece.get_blocks():
             if by >= 0:  # Only draw blocks that are visible
@@ -296,6 +128,7 @@ def draw():
     screen.draw.rect(NEXT_PIECE_BOX, GRID_BORDER)
     
     # Draw next piece preview
+    next_piece = game_state['next_piece']
     if next_piece:
         # Calculate the bounds of the piece
         min_x = min(dx for dx, dy in next_piece.shape)
@@ -323,21 +156,21 @@ def draw():
     
     # Draw score display
     screen.draw.text(
-        f"SCORE: {score}",
+        f"SCORE: {game_state['score']}",
         topleft=(950, 400),
         fontsize=28,
         color=UI_TEXT_COLOR
     )
     
     screen.draw.text(
-        f"LEVEL: {level}",
+        f"LEVEL: {game_state['level']}",
         topleft=(950, 450),
         fontsize=28,
         color=UI_TEXT_COLOR
     )
     
     screen.draw.text(
-        f"LINES: {lines_cleared}",
+        f"LINES: {game_state['lines_cleared']}",
         topleft=(950, 500),
         fontsize=28,
         color=UI_TEXT_COLOR
@@ -369,7 +202,7 @@ def draw():
         y_offset += 30
     
     # Draw game over message if game is over
-    if game_over:
+    if game_state['game_over']:
         # Draw semi-transparent overlay
         overlay_rect = Rect(GRID_X, GRID_Y + GRID_HEIGHT * BLOCK_SIZE // 2 - 100, 
                            GRID_WIDTH * BLOCK_SIZE, 200)
@@ -384,7 +217,7 @@ def draw():
         )
         
         screen.draw.text(
-            f"Final Score: {score}",
+            f"Final Score: {game_state['score']}",
             center=(GRID_X + GRID_WIDTH * BLOCK_SIZE // 2, 
                    GRID_Y + GRID_HEIGHT * BLOCK_SIZE // 2 + 10),
             fontsize=28,
@@ -402,67 +235,66 @@ def draw():
 
 def update(dt):
     """Main update function - called by Pygame Zero every frame"""
-    global fall_timer, current_piece
-    
     # Don't update if game is over
-    if game_over:
+    if game_state['game_over']:
         return
     
     # Initialize the first piece if needed
-    if current_piece is None:
-        spawn_piece()
+    if game_state['current_piece'] is None:
+        spawn_piece(game_state, grid)
         return
     
     # Update fall timer
-    fall_timer += dt
+    game_state['fall_timer'] += dt
     
     # Automatic falling
-    if fall_timer >= fall_speed:
-        fall_timer = 0
+    if game_state['fall_timer'] >= game_state['fall_speed']:
+        game_state['fall_timer'] = 0
         
         # Try to move piece down
-        if not check_collision(current_piece, 0, 1):
-            current_piece.move(0, 1)
+        if not check_collision(game_state['current_piece'], grid, 0, 1):
+            game_state['current_piece'].move(0, 1)
         else:
             # Piece can't move down - lock it and spawn new piece
-            lock_piece(current_piece)
+            lock_piece(game_state['current_piece'], grid)
             
             # Check and clear any completed lines
-            completed_lines = check_lines()
-            clear_lines(completed_lines)
+            completed_lines = check_lines(grid)
+            clear_lines(completed_lines, grid, game_state)
             
-            spawn_piece()
+            spawn_piece(game_state, grid)
 
 
 def on_key_down(key):
     """Handle keyboard input"""
-    global current_piece, grid, game_over, fall_timer, next_piece, score, level, lines_cleared, fall_speed
-    
     # Restart game if game over
-    if game_over and key == keys.R:
+    if game_state['game_over'] and key == keys.R:
         # Reset game state
+        global grid
         grid = [[0 for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
-        current_piece = None
-        next_piece = None
-        fall_timer = 0
-        game_over = False
-        score = 0
-        level = 1
-        lines_cleared = 0
-        fall_speed = INITIAL_FALL_SPEED
+        game_state['current_piece'] = None
+        game_state['next_piece'] = None
+        game_state['fall_timer'] = 0
+        game_state['game_over'] = False
+        game_state['score'] = 0
+        game_state['level'] = 1
+        game_state['lines_cleared'] = 0
+        game_state['fall_speed'] = INITIAL_FALL_SPEED
         return
     
-    if current_piece is None or game_over:
+    if game_state['current_piece'] is None or game_state['game_over']:
         return
+    
+    current_piece = game_state['current_piece']
     
     # Move left
     if key == keys.LEFT:
-        if not check_collision(current_piece, -1, 0):
+        if not check_collision(current_piece, grid, -1, 0):
             current_piece.move(-1, 0)
     
     # Move right
     elif key == keys.RIGHT:
-        if not check_collision(current_piece, 1, 0):
+        if not check_collision(current_piece, grid, 1, 0):
             current_piece.move(1, 0)
     
     # Rotate
@@ -472,13 +304,13 @@ def on_key_down(key):
         current_piece.rotate()
         
         # Check if rotation is valid
-        if check_collision(current_piece, 0, 0):
+        if check_collision(current_piece, grid, 0, 0):
             # Try wall kicks
             wall_kick_offsets = [(-1, 0), (1, 0), (-2, 0), (2, 0), (0, -1)]
             kick_successful = False
             
             for dx, dy in wall_kick_offsets:
-                if not check_collision(current_piece, dx, dy):
+                if not check_collision(current_piece, grid, dx, dy):
                     current_piece.move(dx, dy)
                     kick_successful = True
                     break
@@ -489,9 +321,9 @@ def on_key_down(key):
     
     # Soft drop (move down faster)
     elif key == keys.DOWN:
-        if not check_collision(current_piece, 0, 1):
+        if not check_collision(current_piece, grid, 0, 1):
             current_piece.move(0, 1)
-            score += SCORE_SOFT_DROP  # 1 point per cell
+            game_state['score'] += SCORE_SOFT_DROP  # 1 point per cell
     
     # Hard drop (instant placement)
     elif key == keys.SPACE:
@@ -499,23 +331,22 @@ def on_key_down(key):
         cells_dropped = 0
         
         # Move piece down until it collides
-        while not check_collision(current_piece, 0, 1):
+        while not check_collision(current_piece, grid, 0, 1):
             current_piece.move(0, 1)
             cells_dropped += 1
         
         # Add hard drop score (2 points per cell)
-        score += cells_dropped * SCORE_HARD_DROP
+        game_state['score'] += cells_dropped * SCORE_HARD_DROP
         
         # Lock the piece and spawn new one
-        lock_piece(current_piece)
+        lock_piece(current_piece, grid)
         
         # Check and clear any completed lines
-        completed_lines = check_lines()
-        clear_lines(completed_lines)
+        completed_lines = check_lines(grid)
+        clear_lines(completed_lines, grid, game_state)
         
-        spawn_piece()
+        spawn_piece(game_state, grid)
 
 
-# Run the game only when executed as main
-if __name__ == '__main__':
-    pgzrun.go()
+# Run the game
+pgzrun.go()
