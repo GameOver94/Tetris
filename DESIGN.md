@@ -6,7 +6,7 @@
 **Genre:** Puzzle Game (Tetris Clone)  
 **Platform:** Desktop (Pygame Zero)  
 **Target Audience:** Potential customers, promotional purposes  
-**Theme:** Cleaning tools and household items instead of classic Tetris blocks
+**Theme:** Office and Bathroom furniture instead of classic Tetris blocks
 
 ## 2. Game Concept
 
@@ -16,7 +16,7 @@ A promotional Tetris clone where players arrange falling cleaning tools and hous
 
 ### 3.1 Essential Features
 - **Classic Tetris Gameplay:** Line clearing, gravity, rotation, and movement
-- **Cleaning-themed Sprites:** Mops, vacuums, washing machines, toilets, squeegees, hoses, ladders
+- **Office and Bathroom-themed Sprites:** Desks, monitors, office chairs, printers, showers, toilets, sinks
 - **Score System:** Points for clearing lines and placing pieces
 - **Progressive Difficulty:** Increasing fall speed as game progresses
 - **Game Over Detection:** When pieces reach the top of the playfield
@@ -66,65 +66,59 @@ GAME OVER:
 ```
 
 ### 4.2 Game States
-- **MENU:** Initial screen (can be simple or skip to game)
+- **MENU:** Initial screen (logo)
 - **PLAYING:** Active gameplay
 - **PAUSED:** Game paused (optional)
 - **GAME_OVER:** End screen with score
 
 ## 5. Sprite Design
 
-### 5.1 Cleaning Tool Pieces (Tetromino Equivalents)
+### 5.1 Office and Bathroom Furniture Pieces (Tetromino Equivalents)
 
-All pieces will be based on the 7 classic tetromino shapes but represented as cleaning tools and household items:
+All pieces will be based on the 7 classic tetromino shapes but represented as offes and bathroom items.
+We are using a 2.5D pixel art style:
 
-#### Piece 1: I-Piece (4x1) - "The Squeegee"
-- **Visual:** Window cleaning squeegee or cleaning rod
-- **Color:** Blue handle with silver blade
+#### Piece 1: I-Piece (4x1) - "The Desk"
+- **Visual:** A office desk with cabinet and drawer
 - **Size:** 4 blocks long
 - **Rotations:** Horizontal/Vertical
-- **Rationale:** Long, straight tool perfect for the I-shape
+- **Dimensions:** 192x48 px
 
-#### Piece 2: O-Piece (2x2) - "The Washing Machine"
-- **Visual:** Front-loading washing machine (front view)
-- **Color:** White with blue/green accent (brand colors)
+#### Piece 2: O-Piece (2x2) - "The Printer"
+- **Visual:** A large photo copier
 - **Size:** 2x2 blocks
 - **Rotations:** None (square)
-- **Rationale:** Square appliance fits the O-shape perfectly
+- **Dimensions:** 96x96 px
 
-#### Piece 3: T-Piece - "The Mop"
-- **Visual:** Mop with handle and mop head (side view)
-- **Color:** Blue handle with white/gray mop head
+#### Piece 3: T-Piece - "The Shower"
+- **Visual:** A shower or shower head
 - **Size:** T-shaped
 - **Rotations:** 4 orientations
-- **Rationale:** T-shape naturally represents mop handle + head
+- **Dimensions:** 144x96 px
 
-#### Piece 4: L-Piece - "The Vacuum Cleaner"
-- **Visual:** Upright vacuum cleaner (side view)
-- **Color:** Blue and gray with green accent
+#### Piece 4: L-Piece - "The Office Chair"
+- **Visual:** A office chair
 - **Size:** L-shaped
 - **Rotations:** 4 orientations
-- **Rationale:** L-shape works well for vacuum body + handle
+- **Dimensions:** 96x144 px
 
-#### Piece 5: J-Piece - "The Toilet"
-- **Visual:** Toilet with tank (side view)
-- **Color:** White ceramic with blue water
+#### Piece 5: J-Piece - "The Cabinet"
+- **Visual:** A Arangement of Shelfs and filing Cabinets
 - **Size:** J-shaped
 - **Rotations:** 4 orientations
-- **Rationale:** J-shape matches toilet bowl + tank configuration
+- **Dimensions:** 96x144 px
 
-#### Piece 6: S-Piece - "The Hose"
-- **Visual:** Coiled garden/cleaning hose
-- **Color:** Green with silver fittings
+#### Piece 6: S-Piece - "The Sink"
+- **Visual:** A Sink with its plumbing
 - **Size:** S-shaped
 - **Rotations:** 2 orientations
-- **Rationale:** S-curve naturally represents a coiled hose
+- **Dimensions:** 144x96 px
 
-#### Piece 7: Z-Piece - "The Ladder"
-- **Visual:** Ladder (side view, leaning)
-- **Color:** Gray/silver metal
+#### Piece 7: Z-Piece - "The Toilet"
+- **Visual:** A clasic toilet with water tank
 - **Size:** Z-shaped
 - **Rotations:** 2 orientations
-- **Rationale:** Z-shape represents ladder rungs in perspective
+- **Dimensions:** 144x96 px
 
 ### 5.2 Sprite Specifications
 
@@ -138,17 +132,16 @@ All pieces will be based on the 7 classic tetromino shapes but represented as cl
 ```
 images/
   ├── pieces/
-  │   ├── squeegee.png      (I-piece)
-  │   ├── washer.png        (O-piece)
-  │   ├── mop.png           (T-piece)
-  │   ├── vacuum.png        (L-piece)
-  │   ├── toilet.png        (J-piece)
-  │   ├── hose.png          (S-piece)
-  │   └── ladder.png        (Z-piece)
+  │   ├── desk.png        (I-piece)
+  │   ├── priner.png      (O-piece)
+  │   ├── shower.png      (T-piece)
+  │   ├── chair.png       (L-piece)
+  │   ├── cabinet.png     (J-piece)
+  │   ├── sink.png        (S-piece)
+  │   └── toilet.png      (Z-piece)
   ├── ui/
   │   ├── logo.png          (HaHa Hausservice Haubenhofer logo)
   │   ├── background.png    (Game background)
-  │   └── block_empty.png   (Grid outline)
   └── effects/
       └── line_clear.png    (Optional: line clear effect)
 ```
@@ -158,8 +151,8 @@ images/
 ### 6.1 Screen Layout (1280x960 resolution)
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│  HAHA HAUSSERVICE HAUBENHOFER                          [LOGO]            │
+┌────────────────────────────────────────────────────────────────────────┐
+│  HAHA HAUSSERVICE HAUBENHOFER                          [LOGO]          │
 ├───────────────────┬─────────────────────────┬──────────────────────────┤
 │                   │                         │  NEXT PIECE:             │
 │                   │                         │  ┌──────────────┐        │
@@ -241,7 +234,7 @@ images/
 
 ### 8.1 Technology Stack
 - **Framework:** Pygame Zero
-- **Language:** Python 3.8+
+- **Language:** Python 3.12+
 - **Graphics:** PNG sprites
 - **Configuration:** Simple Python variables
 
@@ -327,7 +320,7 @@ SHAPES = {
 
 ### Phase 4: UI & Graphics
 - [ ] Create placeholder sprites (colored blocks)
-- [ ] Design cleaning tool sprites (squeegee, washer, mop, vacuum, toilet, hose, ladder)
+- [ ] Design cleaning furniture sprites
 - [ ] Implement sprite rendering (48x48 pixel blocks)
 - [ ] Add UI elements (score, level, next piece)
 - [ ] Add HaHa Hausservice Haubenhofer logo
@@ -351,7 +344,7 @@ SHAPES = {
 ## 10. Success Criteria
 
 The game will be considered complete when:
-1. All 7 cleaning tool pieces can spawn, move, rotate, and lock
+1. All 7 furniture pieces can spawn, move, rotate, and lock
 2. Lines clear correctly and score updates
 3. Game over triggers when pieces reach the top
 4. Level progression works and speed increases
@@ -377,14 +370,6 @@ The game will be considered complete when:
 - Start with basic graphics (can upgrade later)
 - Focus on core gameplay first
 - Add polish incrementally
-
-### 11.3 Future Possibilities
-- Web version using Pygame Zero to HTML export
-- Mobile responsive design
-- Multiplayer/competitive mode
-- Custom cleaning tool piece creator
-- Integration with company website
-- Animated mascot (diving bird) for special achievements
 
 ---
 
