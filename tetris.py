@@ -142,7 +142,7 @@ def lock_piece(piece):
 
 
 def check_lines():
-    """Check for completed lines and return the number of lines cleared"""
+    """Check for completed lines and return a list of line indices to clear"""
     lines_to_clear = []
     
     # Check each row from bottom to top
@@ -160,10 +160,10 @@ def clear_lines(lines_to_clear):
     if not lines_to_clear:
         return
     
-    # Sort lines from top to bottom
+    # Sort lines by index (lower indices = higher on screen)
     lines_to_clear.sort()
     
-    # Remove completed lines
+    # Remove completed lines from bottom to top
     for y in reversed(lines_to_clear):
         del grid[y]
         # Add empty line at the top
@@ -173,19 +173,19 @@ def clear_lines(lines_to_clear):
     num_lines = len(lines_to_clear)
     lines_cleared += num_lines
     
-    # Calculate score based on number of lines cleared
+    # Calculate score based on number of lines cleared (1-4 lines standard in Tetris)
     if num_lines == 1:
         score += SCORE_SINGLE * level
     elif num_lines == 2:
         score += SCORE_DOUBLE * level
     elif num_lines == 3:
         score += SCORE_TRIPLE * level
-    elif num_lines == 4:
+    elif num_lines >= 4:  # 4 or more lines (Tetris)
         score += SCORE_TETRIS * level
     
     # Level up every 10 lines
     new_level = (lines_cleared // 10) + 1
-    if new_level > level and level < 15:  # Max level 15
+    if new_level > level and new_level <= 15:  # Max level 15
         level = new_level
         # Increase fall speed by 10% each level
         fall_speed = INITIAL_FALL_SPEED * (SPEED_MULTIPLIER ** (level - 1))
