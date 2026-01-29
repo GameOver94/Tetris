@@ -386,7 +386,7 @@ def on_key_down(key):
     # Rotate
     elif key == keys.UP:
         # Save current state in case rotation fails
-        old_shape = current_piece.shape.copy()
+        old_blocks = [((dx, dy), block) for (dx, dy), block in current_piece.blocks]
         current_piece.rotate()
         
         # Check if rotation is valid
@@ -403,7 +403,7 @@ def on_key_down(key):
             
             # If no wall kick worked, revert rotation
             if not kick_successful:
-                current_piece.shape = old_shape
+                current_piece.blocks = old_blocks
     
     # Soft drop (move down faster)
     elif key == keys.DOWN:

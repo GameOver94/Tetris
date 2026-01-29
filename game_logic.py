@@ -64,8 +64,9 @@ class Piece:
         self.y = 0
         
         # Create blocks with sprite information
-        # blocks is a list of (dx, dy, Block) tuples
-        # where (dx, dy) is the position relative to piece origin
+        # blocks is a list of ((dx, dy), Block) tuples
+        # where (dx, dy) is a tuple for the position relative to piece origin
+        # and Block contains the sprite information
         self.blocks = []
         for dx, dy in SHAPES[shape_type]:
             if sprite_manager:
