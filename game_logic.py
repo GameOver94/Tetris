@@ -99,7 +99,7 @@ class Piece:
     def rotate(self):
         """
         Rotate the piece 90 degrees clockwise.
-        Blocks maintain their sprite information through rotation.
+        Blocks maintain their sprite information and rotate their sprites.
         """
         # Don't rotate O-piece (it's a square)
         if self.shape_type == 'O':
@@ -111,6 +111,8 @@ class Piece:
         for (dx, dy), block in self.blocks:
             new_dx = dy
             new_dy = -dx
+            # Rotate the block's sprite as well
+            block.rotate_clockwise()
             rotated_blocks.append(((new_dx, new_dy), block))
         
         # Normalize to keep top-left aligned

@@ -163,8 +163,21 @@ def draw():
                 block_y = GRID_Y + y * BLOCK_SIZE
                 
                 # Check if cell contains a Block object (new system) or just a string (old system)
-                if hasattr(cell, 'sprite') and cell.sprite:
-                    # New system: use the block's pre-loaded sprite
+                if hasattr(cell, 'sprite') and hasattr(cell, 'rotation'):
+                    # New system with rotation: get rotated sprite from sprite_manager
+                    rotated_sprite = sprite_manager.get_block_sprite(
+                        cell.shape_type, cell.sprite_dx, cell.sprite_dy, cell.rotation
+                    )
+                    if rotated_sprite:
+                        screen.blit(rotated_sprite, (block_x, block_y))
+                    else:
+                        # Fallback to colored blocks
+                        block_rect = Rect(block_x, block_y, BLOCK_SIZE, BLOCK_SIZE)
+                        color = PIECE_COLORS[cell.shape_type]
+                        screen.draw.filled_rect(block_rect, color)
+                        screen.draw.rect(block_rect, GRID_BORDER)
+                elif hasattr(cell, 'sprite') and cell.sprite:
+                    # Old system: use the block's pre-loaded sprite (no rotation)
                     screen.blit(cell.sprite, (block_x, block_y))
                 elif hasattr(cell, 'shape_type'):
                     # Block object without sprite - use color fallback
@@ -189,8 +202,21 @@ def draw():
                 block_x = GRID_X + bx * BLOCK_SIZE
                 block_y = GRID_Y + by * BLOCK_SIZE
                 
-                # Use the block's pre-loaded sprite, fallback to color
-                if block.sprite:
+                # Use the block's rotated sprite, fallback to color
+                if hasattr(block, 'rotation'):
+                    # Get rotated sprite from sprite_manager
+                    rotated_sprite = sprite_manager.get_block_sprite(
+                        block.shape_type, block.sprite_dx, block.sprite_dy, block.rotation
+                    )
+                    if rotated_sprite:
+                        screen.blit(rotated_sprite, (block_x, block_y))
+                    else:
+                        # Fallback to colored blocks
+                        block_rect = Rect(block_x, block_y, BLOCK_SIZE, BLOCK_SIZE)
+                        screen.draw.filled_rect(block_rect, current_piece.color)
+                        screen.draw.rect(block_rect, GRID_BORDER)
+                elif block.sprite:
+                    # Old system without rotation
                     screen.blit(block.sprite, (block_x, block_y))
                 else:
                     # Fallback to colored blocks
@@ -231,8 +257,21 @@ def draw():
             block_x = preview_offset_x + dx * BLOCK_SIZE
             block_y = preview_offset_y + dy * BLOCK_SIZE
             
-            # Use the block's pre-loaded sprite, fallback to color
-            if block.sprite:
+            # Use the block's rotated sprite, fallback to color
+            if hasattr(block, 'rotation'):
+                # Get rotated sprite from sprite_manager
+                rotated_sprite = sprite_manager.get_block_sprite(
+                    block.shape_type, block.sprite_dx, block.sprite_dy, block.rotation
+                )
+                if rotated_sprite:
+                    screen.blit(rotated_sprite, (block_x, block_y))
+                else:
+                    # Fallback to colored blocks
+                    block_rect = Rect(block_x, block_y, BLOCK_SIZE, BLOCK_SIZE)
+                    screen.draw.filled_rect(block_rect, next_piece.color)
+                    screen.draw.rect(block_rect, GRID_BORDER)
+            elif block.sprite:
+                # Old system without rotation
                 screen.blit(block.sprite, (block_x, block_y))
             else:
                 # Fallback to colored blocks
