@@ -75,6 +75,11 @@ class SpriteManager:
                 block = Surface((BLOCK_SIZE, BLOCK_SIZE), sprite.get_flags(), sprite)
                 block.blit(sprite, (0, 0), (0, BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
             
+            # Add a subtle border to make blocks distinct
+            from pygame import draw as pg_draw
+            border_color = (100, 100, 100)
+            pg_draw.rect(block, border_color, (0, 0, BLOCK_SIZE, BLOCK_SIZE), 1)
+            
             self.block_sprites[shape_type] = block
     
     def get_block_sprite(self, shape_type):

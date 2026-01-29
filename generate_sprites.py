@@ -30,17 +30,27 @@ def create_desk_sprite():
     # Create a 4x1 desk sprite (192x48)
     sprite = Surface((BLOCK_SIZE * 4, BLOCK_SIZE), pygame.SRCALPHA)
     
+    # Shadow
+    draw.rect(sprite, (0, 0, 0, 40), (2, 7, BLOCK_SIZE * 4, 15))
+    
     # Desktop (brown wood)
     draw.rect(sprite, BROWN, (0, 5, BLOCK_SIZE * 4, 15))
     draw.rect(sprite, DARK_BROWN, (0, 5, BLOCK_SIZE * 4, 3))  # Edge
+    # Wood grain highlights
+    draw.line(sprite, (160, 110, 60), (5, 10), (BLOCK_SIZE * 4 - 5, 10), 1)
     
-    # Legs and drawers
+    # Legs and drawers with depth
     for i in range(4):
         x_offset = i * BLOCK_SIZE
+        # Shadow for drawer
+        draw.rect(sprite, (0, 0, 0, 30), (x_offset + 6, 22, BLOCK_SIZE - 8, 25))
         # Drawer/cabinet body
         draw.rect(sprite, MED_GRAY, (x_offset + 4, 20, BLOCK_SIZE - 8, 25))
         draw.rect(sprite, DARK_GRAY, (x_offset + 4, 20, BLOCK_SIZE - 8, 2))
-        # Drawer handle
+        # Highlight
+        draw.rect(sprite, (180, 180, 180), (x_offset + 5, 21, BLOCK_SIZE - 10, 2))
+        # Drawer handle with depth
+        draw.rect(sprite, (50, 50, 50), (x_offset + 21, 31, 8, 3))
         draw.rect(sprite, DARK_GRAY, (x_offset + 20, 30, 8, 3))
     
     # Add text label
@@ -58,19 +68,28 @@ def create_printer_sprite():
     """O-Piece: Printer/Copier - 2x2 blocks"""
     sprite = Surface((BLOCK_SIZE * 2, BLOCK_SIZE * 2), pygame.SRCALPHA)
     
+    # Shadow
+    draw.rect(sprite, (0, 0, 0, 40), (10, 22, BLOCK_SIZE * 2 - 16, BLOCK_SIZE * 2 - 28))
+    
     # Main printer body (light gray)
     draw.rect(sprite, LIGHT_GRAY, (8, 20, BLOCK_SIZE * 2 - 16, BLOCK_SIZE * 2 - 30))
     draw.rect(sprite, MED_GRAY, (8, 20, BLOCK_SIZE * 2 - 16, 5))  # Top edge
+    # Highlight
+    draw.rect(sprite, WHITE, (9, 26, BLOCK_SIZE * 2 - 18, 2))
     
-    # Paper tray (white)
+    # Paper tray (white) with depth
+    draw.rect(sprite, (200, 200, 200), (14, 32, BLOCK_SIZE * 2 - 24, 40))
     draw.rect(sprite, WHITE, (12, 30, BLOCK_SIZE * 2 - 24, 40))
     draw.rect(sprite, MED_GRAY, (12, 30, BLOCK_SIZE * 2 - 24, 2))
     
-    # Control panel (dark)
+    # Control panel (dark) with depth
+    draw.rect(sprite, (40, 40, 40), (14, 77, 30, 15))
     draw.rect(sprite, DARK_GRAY, (12, 75, 30, 15))
     
-    # Buttons (colored)
+    # Buttons (colored) with highlights
+    draw.circle(sprite, (0, 100, 30), (21, 83), 3)
     draw.circle(sprite, SECONDARY_GREEN, (20, 82), 3)
+    draw.circle(sprite, (0, 50, 150), (31, 83), 3)
     draw.circle(sprite, PRIMARY_BLUE, (30, 82), 3)
     
     # Label
