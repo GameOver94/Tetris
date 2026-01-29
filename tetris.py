@@ -155,18 +155,21 @@ def check_lines():
 
 def clear_lines(lines_to_clear):
     """Clear completed lines and move rows down"""
-    global score, level, lines_cleared, fall_speed
+    global grid, score, level, lines_cleared, fall_speed
     
     if not lines_to_clear:
         return
     
-    # Sort lines by index (lower indices = higher on screen)
-    lines_to_clear.sort()
+    # Sort lines in descending order (bottom to top, highest index first)
+    # This ensures we delete from bottom to top so indices don't shift
+    lines_to_clear.sort(reverse=True)
     
     # Remove completed lines from bottom to top
-    for y in reversed(lines_to_clear):
+    for y in lines_to_clear:
         del grid[y]
-        # Add empty line at the top
+    
+    # Add empty lines at the top for each cleared line
+    for _ in range(len(lines_to_clear)):
         grid.insert(0, [0 for _ in range(GRID_WIDTH)])
     
     # Update lines cleared count
