@@ -41,22 +41,49 @@ rotated_logo = None
 def load_logo():
     """Load and rotate the logo for the left panel"""
     global logo_surface, rotated_logo
+    import os
+    
+    # Try to load logo (prefer PNG placeholder, fallback to JPEG)
+    logo_files = ['assets/logo_placeholder.png', 'assets/logo.png', 'assets/logo.jpeg']
+    logo_loaded = False
+    
+    for logo_file in logo_files:
+        if os.path.exists(logo_file):
+            try:
+                logo_surface = image.load(logo_file)
+                logo_loaded = True
+                print(f"Loaded logo from {logo_file}")
+                break
+            except Exception as e:
+                print(f"Error loading {logo_file}: {e}")
+    
+    if not logo_loaded:
+        print("No logo file found")
+        rotated_logo = None
+        return
+    
     try:
-        # Load the logo using pygame
-        logo_surface = image.load('assets/logo.jpeg')
-        
-        # Calculate dimensions for the left panel (width ~360px, height for vertical fit)
-        # We want the logo to fit nicely in the left area (0-400px wide)
+        # Calculate dimensions for the left panel
+        # We want the logo to fit nicely in the left area (0-400px wide, 960px tall)
         # With 90 degree rotation, the logo width becomes height and vice versa
-        # Original logo is 800x533
         
-        # Target dimensions: make it fill the left area nicely
-        # Left area is 400px wide, so after 90° rotation, height should be ~360px
-        # This means original width should scale to 360px
-        target_height = 360  # This will be the width after rotation
-        scale_factor = target_height / logo_surface.get_width()
-        new_width = int(logo_surface.get_width() * scale_factor)
-        new_height = int(logo_surface.get_height() * scale_factor)
+        # The rotated logo should fit within 400px width and 960px height
+        # After rotation: original_height becomes width, original_width becomes height
+        max_rotated_width = 380  # Leave some margin
+        max_rotated_height = 940  # Leave some margin
+        
+        # Calculate what the original dimensions would need to be
+        # rotated_width = original_height, rotated_height = original_width
+        original_width = logo_surface.get_width()
+        original_height = logo_surface.get_height()
+        
+        # Scale to fit the rotated dimensions
+        scale_width = max_rotated_width / original_height
+        scale_height = max_rotated_height / original_width
+        scale_factor = min(scale_width, scale_height)
+        
+        new_width = int(original_width * scale_factor)
+        new_height = int(original_height * scale_factor)
         
         # Scale the logo
         scaled_logo = transform.scale(logo_surface, (new_width, new_height))
@@ -65,7 +92,7 @@ def load_logo():
         rotated_logo = transform.rotate(scaled_logo, -90)
         
     except Exception as e:
-        print(f"Error loading logo: {e}")
+        print(f"Error processing logo: {e}")
         rotated_logo = None
 
 # Game state
