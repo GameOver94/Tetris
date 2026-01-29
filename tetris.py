@@ -6,7 +6,7 @@ Built with Pygame Zero
 """
 
 import pgzrun
-from pygame import Rect
+from pygame import Rect, transform, image
 from game_logic import (
     Piece, SHAPES, PIECE_COLORS, GRID_WIDTH, GRID_HEIGHT,
     INITIAL_FALL_SPEED, SCORE_SOFT_DROP, SCORE_HARD_DROP,
@@ -34,6 +34,40 @@ GRID_Y = 0  # Y position of game grid
 GRID_RECT = Rect(GRID_X, GRID_Y, GRID_WIDTH * BLOCK_SIZE, GRID_HEIGHT * BLOCK_SIZE)
 NEXT_PIECE_BOX = Rect(950, 120, 240, 240)
 
+# Load and prepare logo
+logo_surface = None
+rotated_logo = None
+
+def load_logo():
+    """Load and rotate the logo for the left panel"""
+    global logo_surface, rotated_logo
+    try:
+        # Load the logo using pygame
+        logo_surface = image.load('assets/logo.jpeg')
+        
+        # Calculate dimensions for the left panel (width ~360px, height for vertical fit)
+        # We want the logo to fit nicely in the left area (0-400px wide)
+        # With 90 degree rotation, the logo width becomes height and vice versa
+        # Original logo is 800x533
+        
+        # Target dimensions: make it fill the left area nicely
+        # Left area is 400px wide, so after 90° rotation, height should be ~360px
+        # This means original width should scale to 360px
+        target_height = 360  # This will be the width after rotation
+        scale_factor = target_height / logo_surface.get_width()
+        new_width = int(logo_surface.get_width() * scale_factor)
+        new_height = int(logo_surface.get_height() * scale_factor)
+        
+        # Scale the logo
+        scaled_logo = transform.scale(logo_surface, (new_width, new_height))
+        
+        # Rotate 90 degrees clockwise
+        rotated_logo = transform.rotate(scaled_logo, -90)
+        
+    except Exception as e:
+        print(f"Error loading logo: {e}")
+        rotated_logo = None
+
 # Game state
 grid = [[0 for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
 game_state = {
@@ -47,20 +81,22 @@ game_state = {
     'fall_speed': INITIAL_FALL_SPEED
 }
 
+# Load logo on startup
+load_logo()
+
 
 def draw():
     """Main draw function - called by Pygame Zero every frame"""
     # Clear screen with background color
     screen.fill(BACKGROUND_COLOR)
     
-    # Draw game title (rotated 90 degrees on left border)
-    screen.draw.text(
-        "HAHA HAUSSERVICE HAUBENHOFER",
-        center=(40, HEIGHT // 2),
-        fontsize=36,
-        color=UI_TEXT_COLOR,
-        angle=90
-    )
+    # Draw logo in the left spacing area (rotated 90 degrees)
+    if rotated_logo:
+        # Position the logo centered in the left area
+        # Left area is 0-400px wide, logo should be centered vertically and horizontally
+        logo_x = (GRID_X - rotated_logo.get_width()) // 2
+        logo_y = (HEIGHT - rotated_logo.get_height()) // 2
+        screen.blit(rotated_logo, (logo_x, logo_y))
     
     # Draw game grid background
     screen.draw.filled_rect(GRID_RECT, GRID_BACKGROUND)
