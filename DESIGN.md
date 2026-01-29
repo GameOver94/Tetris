@@ -352,20 +352,20 @@ SHAPES = {
 - [x] Add HaHa Hausservice Haubenhofer logo
 - [x] Polish visual appearance with brand colors
 
-### Phase 5: Polish & Testing
+### Phase 5: Polish & Testing ✓ (Completed)
 - [x] Add controls display
 - [x] Implement restart functionality
 - [x] Test all game mechanics
-- [ ] Balance difficulty curve
-- [ ] Bug fixes and optimization
+- [x] Balance difficulty curve
+- [x] Bug fixes and optimization
 
-### Phase 6: Optional Enhancements
-- [ ] Add sound effects
-- [ ] Add background music
-- [ ] Implement pause menu
-- [ ] Add high score persistence
-- [ ] Create start menu
-- [ ] Add special effects
+### Phase 6: Optional Enhancements ✓ (Completed)
+- [x] Add sound effects
+- [x] Add background music
+- [x] Implement pause menu
+- [x] Add high score persistence
+- [x] Create start menu
+- [x] Add special effects (line clear animations)
 
 ## 10. Success Criteria
 
@@ -399,6 +399,6 @@ The game will be considered complete when:
 
 ---
 
-**Document Version:** 2.4  
+**Document Version:** 3.0  
 **Last Updated:** 2026-01-29  
-**Status:** Phase 4 Complete - Sprite rendering implemented with furniture-themed pieces
+**Status:** Phase 6 Complete - All optional enhancements implemented

@@ -111,7 +111,9 @@ game_state = {
     'level': 1,
     'lines_cleared': 0,
     'fall_speed': INITIAL_FALL_SPEED,
-    'is_new_high_score': False
+    'is_new_high_score': False,
+    'line_clear_effect': [],  # List of (line_index, timer) for line clear animation
+    'line_clear_duration': 0.3  # Duration of line clear effect in seconds
 }
 
 # Load logo on startup
@@ -307,6 +309,23 @@ def draw():
                     color = PIECE_COLORS[cell]
                     screen.draw.filled_rect(block_rect, color)
                     screen.draw.rect(block_rect, GRID_BORDER)
+    
+    # Draw line clear effects
+    for line_index, effect_timer in game_state['line_clear_effect']:
+        # Calculate alpha based on timer (fade out effect)
+        alpha = int(255 * (1 - effect_timer / game_state['line_clear_duration']))
+        
+        # Create a flashing effect with alternating colors
+        flash_cycle = int(effect_timer * 20) % 2  # Fast flash
+        if flash_cycle == 0:
+            effect_color = (255, 255, 255, alpha)  # White
+        else:
+            effect_color = (255, 215, 0, alpha)  # Gold
+        
+        # Draw the line effect overlay
+        line_rect = Rect(GRID_X, GRID_Y + line_index * BLOCK_SIZE, 
+                        GRID_WIDTH * BLOCK_SIZE, BLOCK_SIZE)
+        screen.draw.filled_rect(line_rect, effect_color)
     
     # Draw current falling piece
     current_piece = game_state['current_piece']
@@ -504,6 +523,15 @@ def update(dt):
     if game_state['menu'] == 'start':
         return
     
+    # Update line clear effects even when paused or game over
+    if game_state['line_clear_effect']:
+        updated_effects = []
+        for line_index, effect_timer in game_state['line_clear_effect']:
+            new_timer = effect_timer + dt
+            if new_timer < game_state['line_clear_duration']:
+                updated_effects.append((line_index, new_timer))
+        game_state['line_clear_effect'] = updated_effects
+    
     # Don't update if game is over or paused
     if game_state['game_over'] or game_state.get('paused', False):
         return
@@ -533,6 +561,9 @@ def update(dt):
             if completed_lines:
                 # Track level before clearing lines
                 old_level = game_state['level']
+                
+                # Start line clear effect animation
+                game_state['line_clear_effect'] = [(line_idx, 0.0) for line_idx in completed_lines]
                 
                 # Play appropriate sound based on number of lines
                 if len(completed_lines) >= 4:
@@ -676,6 +707,9 @@ def on_key_down(key):
         # Check and clear any completed lines
         completed_lines = check_lines(grid)
         if completed_lines:
+            # Start line clear effect animation
+            game_state['line_clear_effect'] = [(line_idx, 0.0) for line_idx in completed_lines]
+            
             # Play appropriate sound based on number of lines
             if len(completed_lines) >= 4:
                 sound_manager.play_sound('tetris')

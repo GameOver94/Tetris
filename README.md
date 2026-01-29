@@ -1,6 +1,16 @@
 # Tetris
 A promotional Tetris game for Hausservice Haubenhofer
 
+## Features
+
+- Classic Tetris gameplay with office and bathroom furniture pieces
+- Progressive difficulty with increasing speed
+- High score persistence
+- Sound effects and background music (optional)
+- Pause functionality
+- Start menu
+- Visual effects for line clears
+
 ## Installation
 
 1. Install dependencies:
@@ -19,6 +29,22 @@ pgzrun tetris.py
 # Method 2: Using python directly
 python tetris.py
 ```
+
+## Controls
+
+- **Arrow Keys**: Move pieces left/right, rotate, and soft drop
+- **SPACE**: Hard drop (instant placement)
+- **P**: Pause/Resume game
+- **M**: Toggle music on/off
+- **R**: Restart after game over
+
+## Sound Files (Optional)
+
+The game supports sound effects and background music. To enable sounds, add audio files to:
+- `sounds/effects/` - Sound effects (move.wav, rotate.wav, lock.wav, line_clear.wav, tetris.wav, game_over.wav, level_up.wav)
+- `sounds/music/` - Background music (background.ogg)
+
+The game will work without these files but will have no audio.
 
 ## Testing
 
