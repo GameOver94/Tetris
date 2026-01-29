@@ -13,6 +13,7 @@ from game_logic import (
     INITIAL_FALL_SPEED, SCORE_SOFT_DROP, SCORE_HARD_DROP,
     check_collision, lock_piece, check_lines, clear_lines, spawn_piece
 )
+from sprite_manager import sprite_manager
 
 # Window configuration
 WIDTH = 1280
@@ -111,6 +112,10 @@ game_state = {
 # Load logo on startup
 load_logo()
 
+# Load piece sprites
+sprite_manager.load_sprites()
+print(f"Sprite rendering: {'enabled' if sprite_manager.has_sprites() else 'disabled (using colors)'}")
+
 
 def draw():
     """Main draw function - called by Pygame Zero every frame"""
@@ -153,30 +158,38 @@ def draw():
     for y in range(GRID_HEIGHT):
         for x in range(GRID_WIDTH):
             if grid[y][x] != 0:
-                # Draw a filled block
-                block_rect = Rect(
-                    GRID_X + x * BLOCK_SIZE,
-                    GRID_Y + y * BLOCK_SIZE,
-                    BLOCK_SIZE,
-                    BLOCK_SIZE
-                )
-                color = PIECE_COLORS[grid[y][x]]
-                screen.draw.filled_rect(block_rect, color)
-                screen.draw.rect(block_rect, GRID_BORDER)
+                piece_type = grid[y][x]
+                block_x = GRID_X + x * BLOCK_SIZE
+                block_y = GRID_Y + y * BLOCK_SIZE
+                
+                # Try to use sprite, fallback to color
+                sprite = sprite_manager.get_block_sprite(piece_type)
+                if sprite:
+                    screen.blit(sprite, (block_x, block_y))
+                else:
+                    # Fallback to colored blocks
+                    block_rect = Rect(block_x, block_y, BLOCK_SIZE, BLOCK_SIZE)
+                    color = PIECE_COLORS[piece_type]
+                    screen.draw.filled_rect(block_rect, color)
+                    screen.draw.rect(block_rect, GRID_BORDER)
     
     # Draw current falling piece
     current_piece = game_state['current_piece']
     if current_piece:
         for bx, by in current_piece.get_blocks():
             if by >= 0:  # Only draw blocks that are visible
-                block_rect = Rect(
-                    GRID_X + bx * BLOCK_SIZE,
-                    GRID_Y + by * BLOCK_SIZE,
-                    BLOCK_SIZE,
-                    BLOCK_SIZE
-                )
-                screen.draw.filled_rect(block_rect, current_piece.color)
-                screen.draw.rect(block_rect, GRID_BORDER)
+                block_x = GRID_X + bx * BLOCK_SIZE
+                block_y = GRID_Y + by * BLOCK_SIZE
+                
+                # Try to use sprite, fallback to color
+                sprite = sprite_manager.get_block_sprite(current_piece.shape_type)
+                if sprite:
+                    screen.blit(sprite, (block_x, block_y))
+                else:
+                    # Fallback to colored blocks
+                    block_rect = Rect(block_x, block_y, BLOCK_SIZE, BLOCK_SIZE)
+                    screen.draw.filled_rect(block_rect, current_piece.color)
+                    screen.draw.rect(block_rect, GRID_BORDER)
     
     # Draw UI panel labels
     screen.draw.text(
@@ -208,14 +221,18 @@ def draw():
         preview_offset_y = NEXT_PIECE_BOX.y + (NEXT_PIECE_BOX.height - piece_height) // 2 - min_y * BLOCK_SIZE
         
         for dx, dy in next_piece.shape:
-            block_rect = Rect(
-                preview_offset_x + dx * BLOCK_SIZE,
-                preview_offset_y + dy * BLOCK_SIZE,
-                BLOCK_SIZE,
-                BLOCK_SIZE
-            )
-            screen.draw.filled_rect(block_rect, next_piece.color)
-            screen.draw.rect(block_rect, GRID_BORDER)
+            block_x = preview_offset_x + dx * BLOCK_SIZE
+            block_y = preview_offset_y + dy * BLOCK_SIZE
+            
+            # Try to use sprite, fallback to color
+            sprite = sprite_manager.get_block_sprite(next_piece.shape_type)
+            if sprite:
+                screen.blit(sprite, (block_x, block_y))
+            else:
+                # Fallback to colored blocks
+                block_rect = Rect(block_x, block_y, BLOCK_SIZE, BLOCK_SIZE)
+                screen.draw.filled_rect(block_rect, next_piece.color)
+                screen.draw.rect(block_rect, GRID_BORDER)
     
     # Draw score display
     screen.draw.text(
