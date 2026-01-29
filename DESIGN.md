@@ -1,27 +1,27 @@
-# Hausservice Haubentaucher - Tetris Game Design Document
+# Hausservice Haubenhofer - Tetris Game Design Document
 
 ## 1. Game Overview
 
-**Title:** Hausservice Haubentaucher Tetris  
+**Title:** HaHa Hausservice Haubenhofer Tetris  
 **Genre:** Puzzle Game (Tetris Clone)  
 **Platform:** Desktop (Pygame Zero)  
 **Target Audience:** Potential customers, promotional purposes  
-**Theme:** Office and bathroom furniture instead of classic Tetris blocks
+**Theme:** Cleaning tools and household items instead of classic Tetris blocks
 
 ## 2. Game Concept
 
-A promotional Tetris clone where players arrange falling office and bathroom furniture pieces instead of traditional tetrominos. The game maintains classic Tetris mechanics while incorporating the Hausservice Haubentaucher brand through themed sprites representing their product offerings.
+A promotional Tetris clone where players arrange falling cleaning tools and household items instead of traditional tetrominos. The game maintains classic Tetris mechanics while incorporating the HaHa Hausservice Haubenhofer brand through themed sprites representing their cleaning and house service offerings.
 
 ## 3. Core Features
 
 ### 3.1 Essential Features
 - **Classic Tetris Gameplay:** Line clearing, gravity, rotation, and movement
-- **Furniture-themed Sprites:** Office chairs, desks, showers, toilets, cabinets, etc.
+- **Cleaning-themed Sprites:** Mops, vacuums, washing machines, toilets, squeegees, hoses, ladders
 - **Score System:** Points for clearing lines and placing pieces
 - **Progressive Difficulty:** Increasing fall speed as game progresses
 - **Game Over Detection:** When pieces reach the top of the playfield
-- **Next Piece Preview:** Shows upcoming furniture piece
-- **Brand Integration:** Hausservice Haubentaucher logo and colors
+- **Next Piece Preview:** Shows upcoming cleaning tool/item
+- **Brand Integration:** HaHa Hausservice Haubenhofer logo and brand colors (blue & green)
 
 ### 3.2 Optional Features (Future Enhancements)
 - High score persistence
@@ -73,73 +73,80 @@ GAME OVER:
 
 ## 5. Sprite Design
 
-### 5.1 Furniture Pieces (Tetromino Equivalents)
+### 5.1 Cleaning Tool Pieces (Tetromino Equivalents)
 
-All pieces will be based on the 7 classic tetromino shapes but represented as furniture:
+All pieces will be based on the 7 classic tetromino shapes but represented as cleaning tools and household items:
 
-#### Piece 1: I-Piece (4x1) - "The Desk"
-- **Visual:** Long office desk
-- **Color:** Brown wood texture
+#### Piece 1: I-Piece (4x1) - "The Squeegee"
+- **Visual:** Window cleaning squeegee or cleaning rod
+- **Color:** Blue handle with silver blade
 - **Size:** 4 blocks long
 - **Rotations:** Horizontal/Vertical
+- **Rationale:** Long, straight tool perfect for the I-shape
 
-#### Piece 2: O-Piece (2x2) - "The Cabinet"
-- **Visual:** Square filing cabinet
-- **Color:** Gray metal
+#### Piece 2: O-Piece (2x2) - "The Washing Machine"
+- **Visual:** Front-loading washing machine (front view)
+- **Color:** White with blue/green accent (brand colors)
 - **Size:** 2x2 blocks
 - **Rotations:** None (square)
+- **Rationale:** Square appliance fits the O-shape perfectly
 
-#### Piece 3: T-Piece - "The Office Chair"
-- **Visual:** Office chair (top view showing base and seat)
-- **Color:** Black with silver wheels
+#### Piece 3: T-Piece - "The Mop"
+- **Visual:** Mop with handle and mop head (side view)
+- **Color:** Blue handle with white/gray mop head
 - **Size:** T-shaped
 - **Rotations:** 4 orientations
+- **Rationale:** T-shape naturally represents mop handle + head
 
-#### Piece 4: L-Piece - "The Shower Head"
-- **Visual:** Shower fixture with pipe
-- **Color:** Chrome silver/blue water
+#### Piece 4: L-Piece - "The Vacuum Cleaner"
+- **Visual:** Upright vacuum cleaner (side view)
+- **Color:** Blue and gray with green accent
 - **Size:** L-shaped
 - **Rotations:** 4 orientations
+- **Rationale:** L-shape works well for vacuum body + handle
 
 #### Piece 5: J-Piece - "The Toilet"
-- **Visual:** Toilet (side view)
-- **Color:** White ceramic
+- **Visual:** Toilet with tank (side view)
+- **Color:** White ceramic with blue water
 - **Size:** J-shaped
 - **Rotations:** 4 orientations
+- **Rationale:** J-shape matches toilet bowl + tank configuration
 
-#### Piece 6: S-Piece - "The Sink"
-- **Visual:** Bathroom sink with faucet
-- **Color:** White/chrome
+#### Piece 6: S-Piece - "The Hose"
+- **Visual:** Coiled garden/cleaning hose
+- **Color:** Green with silver fittings
 - **Size:** S-shaped
 - **Rotations:** 2 orientations
+- **Rationale:** S-curve naturally represents a coiled hose
 
-#### Piece 7: Z-Piece - "The Bathtub"
-- **Visual:** Bathtub (top view)
-- **Color:** White/light blue
+#### Piece 7: Z-Piece - "The Ladder"
+- **Visual:** Ladder (side view, leaning)
+- **Color:** Gray/silver metal
 - **Size:** Z-shaped
 - **Rotations:** 2 orientations
+- **Rationale:** Z-shape represents ladder rungs in perspective
 
 ### 5.2 Sprite Specifications
 
-**Block Size:** 30x30 pixels  
+**Block Size:** 48x48 pixels  
 **Grid Dimensions:** 10 blocks wide × 20 blocks tall  
-**Playfield Size:** 300x600 pixels  
+**Playfield Size:** 480x960 pixels  
 **Sprite Format:** PNG with transparency  
-**Color Palette:** Brand colors + furniture-appropriate colors
+**Color Palette:** Brand colors (blue #0066CC, green #009933) + item-appropriate colors
 
 ### 5.3 Sprite File Structure
 ```
 images/
   ├── pieces/
-  │   ├── desk.png          (I-piece)
-  │   ├── cabinet.png       (O-piece)
-  │   ├── chair.png         (T-piece)
-  │   ├── shower.png        (L-piece)
+  │   ├── squeegee.png      (I-piece)
+  │   ├── washer.png        (O-piece)
+  │   ├── mop.png           (T-piece)
+  │   ├── vacuum.png        (L-piece)
   │   ├── toilet.png        (J-piece)
-  │   ├── sink.png          (S-piece)
-  │   └── bathtub.png       (Z-piece)
+  │   ├── hose.png          (S-piece)
+  │   └── ladder.png        (Z-piece)
   ├── ui/
-  │   ├── logo.png          (Hausservice Haubentaucher logo)
+  │   ├── logo.png          (HaHa Hausservice Haubenhofer logo)
   │   ├── background.png    (Game background)
   │   └── block_empty.png   (Grid outline)
   └── effects/
@@ -148,48 +155,50 @@ images/
 
 ## 6. UI Layout
 
-### 6.1 Screen Layout (800x600 resolution)
+### 6.1 Screen Layout (1280x960 resolution)
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  HAUSSERVICE HAUBENTAUCHER                    [LOGO]         │
-├─────────────────┬─────────────────────┬─────────────────────┤
-│                 │                     │  NEXT PIECE:        │
-│                 │                     │  ┌─────────┐        │
-│                 │                     │  │         │        │
-│  (Empty)        │    GAME GRID        │  │  [img]  │        │
-│                 │    (300x600)        │  │         │        │
-│  Spacing        │                     │  └─────────┘        │
-│                 │                     │                     │
-│                 │                     │  SCORE: 0000        │
-│                 │                     │  LEVEL: 1           │
-│                 │                     │  LINES: 0           │
-│                 │                     │                     │
-│                 │                     │  CONTROLS:          │
-│                 │                     │  ← → Move           │
-│                 │                     │  ↑ Rotate           │
-│                 │                     │  ↓ Soft Drop        │
-│                 │                     │  SPACE Hard Drop    │
-└─────────────────┴─────────────────────┴─────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│  HAHA HAUSSERVICE HAUBENHOFER                          [LOGO]            │
+├───────────────────┬─────────────────────────┬──────────────────────────┤
+│                   │                         │  NEXT PIECE:             │
+│                   │                         │  ┌──────────────┐        │
+│                   │                         │  │              │        │
+│                   │                         │  │    [img]     │        │
+│  (Empty)          │     GAME GRID           │  │              │        │
+│                   │     (480x960)           │  └──────────────┘        │
+│  Spacing          │                         │                          │
+│                   │                         │  SCORE: 0000             │
+│                   │                         │  LEVEL: 1                │
+│                   │                         │  LINES: 0                │
+│                   │                         │                          │
+│                   │                         │  CONTROLS:               │
+│                   │                         │  ← → Move                │
+│                   │                         │  ↑ Rotate                │
+│                   │                         │  ↓ Soft Drop             │
+│                   │                         │  SPACE Hard Drop         │
+└───────────────────┴─────────────────────────┴──────────────────────────┘
 ```
 
 ### 6.2 UI Element Positions (Pygame Zero coordinates)
 
-- **Screen Size:** 800x600 pixels
-- **Game Grid:** x=250, y=0, size=300x600
+- **Screen Size:** 1280x960 pixels
+- **Game Grid:** x=400, y=0, size=480x960
 - **Logo:** x=50, y=30
-- **Next Piece Box:** x=600, y=100
-- **Score Display:** x=600, y=280
-- **Level Display:** x=600, y=320
-- **Lines Display:** x=600, y=360
-- **Controls Info:** x=600, y=420
+- **Next Piece Box:** x=950, y=100, size=240x240
+- **Score Display:** x=950, y=400
+- **Level Display:** x=950, y=450
+- **Lines Display:** x=950, y=500
+- **Controls Info:** x=950, y=600
 
 ### 6.3 Color Scheme
 
-**Primary Colors (Brand):**
+**Primary Colors (Brand - from logo):**
 - Background: #F5F5F5 (Light gray)
-- UI Text: #333333 (Dark gray)
-- Accent: #0066CC (Blue - adjust to match Hausservice Haubentaucher branding)
+- UI Text: #2C3E50 (Dark navy/charcoal - from logo banner)
+- Primary Accent: #0066CC (Bright blue - from "HaHa" text and houses)
+- Secondary Accent: #009933 (Green - from "HAUSSERVICE" text)
+- Light Blue Accent: #33CCFF (Cyan - from logo accents)
 
 **Grid:**
 - Border: #CCCCCC (Light gray)
@@ -278,13 +287,13 @@ tetris/
 **Piece Shapes (using coordinates):**
 ```python
 SHAPES = {
-    'I': [(0,0), (1,0), (2,0), (3,0)],  # Desk
-    'O': [(0,0), (1,0), (0,1), (1,1)],  # Cabinet
-    'T': [(0,0), (1,0), (2,0), (1,1)],  # Chair
-    'L': [(0,0), (0,1), (0,2), (1,2)],  # Shower
+    'I': [(0,0), (1,0), (2,0), (3,0)],  # Squeegee
+    'O': [(0,0), (1,0), (0,1), (1,1)],  # Washing Machine
+    'T': [(0,0), (1,0), (2,0), (1,1)],  # Mop
+    'L': [(0,0), (0,1), (0,2), (1,2)],  # Vacuum
     'J': [(1,0), (1,1), (1,2), (0,2)],  # Toilet
-    'S': [(1,0), (2,0), (0,1), (1,1)],  # Sink
-    'Z': [(0,0), (1,0), (1,1), (2,1)]   # Bathtub
+    'S': [(1,0), (2,0), (0,1), (1,1)],  # Hose
+    'Z': [(0,0), (1,0), (1,1), (2,1)]   # Ladder
 }
 ```
 
@@ -318,11 +327,11 @@ SHAPES = {
 
 ### Phase 4: UI & Graphics
 - [ ] Create placeholder sprites (colored blocks)
-- [ ] Design furniture sprites
-- [ ] Implement sprite rendering
+- [ ] Design cleaning tool sprites (squeegee, washer, mop, vacuum, toilet, hose, ladder)
+- [ ] Implement sprite rendering (48x48 pixel blocks)
 - [ ] Add UI elements (score, level, next piece)
-- [ ] Add Hausservice Haubentaucher logo
-- [ ] Polish visual appearance
+- [ ] Add HaHa Hausservice Haubenhofer logo
+- [ ] Polish visual appearance with brand colors
 
 ### Phase 5: Polish & Testing
 - [ ] Add controls display
@@ -342,27 +351,29 @@ SHAPES = {
 ## 10. Success Criteria
 
 The game will be considered complete when:
-1. All 7 furniture pieces can spawn, move, rotate, and lock
+1. All 7 cleaning tool pieces can spawn, move, rotate, and lock
 2. Lines clear correctly and score updates
 3. Game over triggers when pieces reach the top
 4. Level progression works and speed increases
 5. UI displays all necessary information
-6. Furniture sprites are recognizable and themed
-7. Hausservice Haubentaucher branding is visible
-8. Game is playable and fun
+6. Cleaning tool sprites are recognizable and themed appropriately
+7. HaHa Hausservice Haubenhofer branding is visible and prominent
+8. Brand colors (blue #0066CC, green #009933) are used consistently
 9. No major bugs or crashes
 10. Code is clean and maintainable
 
 ## 11. Notes & Considerations
 
 ### 11.1 Brand Integration
-- Ensure Hausservice Haubentaucher logo is prominently displayed
-- Use brand colors if specified
-- Furniture choices reflect their service offerings
-- Keep aesthetic professional yet playful
+- Ensure HaHa Hausservice Haubenhofer logo (assets/logo.jpeg) is prominently displayed
+- Use brand colors consistently: Blue (#0066CC) and Green (#009933) from logo
+- Cleaning tool choices reflect their house cleaning and service offerings
+- Keep aesthetic professional yet playful, matching the friendly mascot style
+- Logo features Haubentaucher (crested grebe) mascot with cleaning tools
 
 ### 11.2 Simplicity Priority
 - Pygame Zero chosen for rapid development
+- 48x48 pixel blocks provide good visibility without being too large
 - Start with basic graphics (can upgrade later)
 - Focus on core gameplay first
 - Add polish incrementally
@@ -371,11 +382,12 @@ The game will be considered complete when:
 - Web version using Pygame Zero to HTML export
 - Mobile responsive design
 - Multiplayer/competitive mode
-- Custom furniture piece creator
+- Custom cleaning tool piece creator
 - Integration with company website
+- Animated mascot (diving bird) for special achievements
 
 ---
 
-**Document Version:** 1.0  
+**Document Version:** 2.0  
 **Last Updated:** 2026-01-29  
-**Status:** Planning Phase
+**Status:** Planning Phase - Updated with 48x48 blocks and revised sprite mappings
