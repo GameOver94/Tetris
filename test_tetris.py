@@ -1,5 +1,5 @@
 """
-Unit tests for HaHa Hausservice Haubenhofer Tetris Game
+Unit tests for HaHa Hausservice Haubentaucher Tetris Game
 
 This test suite covers:
 - Piece class functionality (initialization, movement, rotation)

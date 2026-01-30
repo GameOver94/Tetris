@@ -1,8 +1,8 @@
-# Hausservice Haubenhofer - Tetris Game Design Document
+# Hausservice Haubentaucher - Tetris Game Design Document
 
 ## 1. Game Overview
 
-**Title:** HaHa Hausservice Haubenhofer Tetris  
+**Title:** HaHa Hausservice Haubentaucher Tetris  
 **Genre:** Puzzle Game (Tetris Clone)  
 **Platform:** Desktop (Pygame Zero)  
 **Target Audience:** Potential customers, promotional purposes  
@@ -10,7 +10,7 @@
 
 ## 2. Game Concept
 
-A promotional Tetris clone where players arrange falling cleaning tools and household items instead of traditional tetrominos. The game maintains classic Tetris mechanics while incorporating the HaHa Hausservice Haubenhofer brand through themed sprites representing their cleaning and house service offerings.
+A promotional Tetris clone where players arrange falling cleaning tools and household items instead of traditional tetrominos. The game maintains classic Tetris mechanics while incorporating the HaHa Hausservice Haubentaucher brand through themed sprites representing their cleaning and house service offerings.
 
 ## 3. Core Features
 
@@ -21,7 +21,7 @@ A promotional Tetris clone where players arrange falling cleaning tools and hous
 - **Progressive Difficulty:** Increasing fall speed as game progresses
 - **Game Over Detection:** When pieces reach the top of the playfield
 - **Next Piece Preview:** Shows upcoming cleaning tool/item
-- **Brand Integration:** HaHa Hausservice Haubenhofer logo and brand colors (blue & green)
+- **Brand Integration:** HaHa Hausservice Haubentaucher logo and brand colors (blue & green)
 
 ### 3.2 Optional Features (Future Enhancements)
 - High score persistence
@@ -140,7 +140,7 @@ images/
   │   ├── sink.png        (S-piece)
   │   └── toilet.png      (Z-piece)
   ├── ui/
-  │   ├── logo.png          (HaHa Hausservice Haubenhofer logo)
+  │   ├── logo.png          (HaHa Hausservice Haubentaucher logo)
   │   ├── background.png    (Game background)
   └── effects/
       └── line_clear.png    (Optional: line clear effect)
@@ -152,7 +152,7 @@ images/
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│  HAHA HAUSSERVICE HAUBENHOFER                          [LOGO]          │
+│  HAHA HAUSSERVICE HAUBENTAUCHER                        [LOGO]          │
 ├───────────────────┬─────────────────────────┬──────────────────────────┤
 │                   │                         │  NEXT PIECE:             │
 │                   │                         │  ┌──────────────┐        │
@@ -349,7 +349,7 @@ SHAPES = {
 - [x] Design cleaning furniture sprites
 - [x] Implement sprite rendering (48x48 pixel blocks)
 - [x] Add UI elements (score, level, next piece)
-- [x] Add HaHa Hausservice Haubenhofer logo
+- [x] Add HaHa Hausservice Haubentaucher logo
 - [x] Polish visual appearance with brand colors
 
 ### Phase 5: Polish & Testing
@@ -376,7 +376,7 @@ The game will be considered complete when:
 4. Level progression works and speed increases
 5. UI displays all necessary information
 6. Cleaning tool sprites are recognizable and themed appropriately
-7. HaHa Hausservice Haubenhofer branding is visible and prominent
+7. HaHa Hausservice Haubentaucher branding is visible and prominent
 8. Brand colors (blue #0066CC, green #009933) are used consistently
 9. No major bugs or crashes
 10. Code is clean and maintainable
@@ -384,7 +384,7 @@ The game will be considered complete when:
 ## 11. Notes & Considerations
 
 ### 11.1 Brand Integration
-- Ensure HaHa Hausservice Haubenhofer logo (assets/logo.jpeg) is prominently displayed
+- Ensure HaHa Hausservice Haubentaucher logo (assets/logo.jpeg) is prominently displayed
 - Use brand colors consistently: Blue (#0066CC) and Green (#009933) from logo
 - Cleaning tool choices reflect their house cleaning and service offerings
 - Keep aesthetic professional yet playful, matching the friendly mascot style

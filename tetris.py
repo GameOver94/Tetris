@@ -1,5 +1,5 @@
 """
-HaHa Hausservice Haubenhofer Tetris Game
+HaHa Hausservice Haubentaucher Tetris Game
 A promotional Tetris clone with office and bathroom furniture pieces
 
 Built with Pygame Zero
@@ -18,7 +18,7 @@ from sprite_manager import sprite_manager
 # Window configuration
 WIDTH = 1280
 HEIGHT = 960
-TITLE = "HaHa Hausservice Haubenhofer Tetris"
+TITLE = "HaHa Hausservice Haubentaucher Tetris"
 
 # Colors (Brand colors from design document)
 BACKGROUND_COLOR = (245, 245, 245)  # #F5F5F5 Light gray
@@ -45,7 +45,7 @@ def load_logo():
     global logo_surface, rotated_logo
     
     # Try to load logo (prefer PNG placeholder, fallback to JPEG)
-    logo_files = ['assets/logo_placeholder.png', 'assets/logo.png', 'assets/logo.jpeg']
+    logo_files = ['assets/logo_vertical.png', 'assets/logo_rotated.png','assets/logo_placeholder.png']
     logo_loaded = False
     
     for logo_file in logo_files:
