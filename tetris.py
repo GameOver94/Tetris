@@ -14,6 +14,8 @@ from game_logic import (
     check_collision, lock_piece, check_lines, clear_lines, spawn_piece
 )
 from sprite_manager import sprite_manager
+from sound_manager import sound_manager
+from highscore_manager import highscore_manager
 
 # Window configuration
 WIDTH = 1280
@@ -103,10 +105,15 @@ game_state = {
     'next_piece': None,
     'fall_timer': 0,
     'game_over': False,
+    'paused': False,
+    'menu': 'start',  # 'start', 'playing', 'paused', 'game_over'
     'score': 0,
     'level': 1,
     'lines_cleared': 0,
-    'fall_speed': INITIAL_FALL_SPEED
+    'fall_speed': INITIAL_FALL_SPEED,
+    'is_new_high_score': False,
+    'line_clear_effect': [],  # List of (line_index, timer) for line clear animation
+    'line_clear_duration': 0.3  # Duration of line clear effect in seconds
 }
 
 # Load logo on startup
@@ -116,11 +123,166 @@ load_logo()
 sprite_manager.load_sprites()
 print(f"Sprite rendering: {'enabled' if sprite_manager.has_sprites() else 'disabled (using colors)'}")
 
+# Load sounds
+sound_manager.load_sounds()
+print(f"Sound effects: {'enabled' if sound_manager.has_sounds() else 'disabled (no sound files)'}")
+
+
+def draw_start_menu():
+    """Draw the start menu screen"""
+    # Draw logo in the center if available
+    if rotated_logo:
+        # Center the logo
+        logo_x = (WIDTH - rotated_logo.get_width()) // 2
+        logo_y = HEIGHT // 2 - 200
+        screen.blit(rotated_logo, (logo_x, logo_y))
+    
+    # Draw title
+    screen.draw.text(
+        "HaHa HAUSSERVICE HAUBENHOFER",
+        center=(WIDTH // 2, 150),
+        fontsize=40,
+        color=PRIMARY_ACCENT
+    )
+    
+    screen.draw.text(
+        "TETRIS",
+        center=(WIDTH // 2, 200),
+        fontsize=60,
+        color=SECONDARY_ACCENT
+    )
+    
+    # Draw high score
+    high_score = highscore_manager.get_high_score()
+    screen.draw.text(
+        f"HIGH SCORE: {high_score}",
+        center=(WIDTH // 2, HEIGHT // 2 + 100),
+        fontsize=32,
+        color=UI_TEXT_COLOR
+    )
+    
+    # Draw instructions
+    screen.draw.text(
+        "Press SPACE to Start",
+        center=(WIDTH // 2, HEIGHT // 2 + 200),
+        fontsize=36,
+        color=PRIMARY_ACCENT
+    )
+    
+    screen.draw.text(
+        "Press M to Toggle Music",
+        center=(WIDTH // 2, HEIGHT // 2 + 250),
+        fontsize=24,
+        color=UI_TEXT_COLOR
+    )
+    
+    # Draw controls
+    controls_text = [
+        "CONTROLS:",
+        "LEFT/RIGHT - Move",
+        "UP - Rotate",
+        "DOWN - Soft Drop",
+        "SPACE - Hard Drop",
+        "P - Pause"
+    ]
+    
+    y_offset = HEIGHT - 280
+    for i, control in enumerate(controls_text):
+        fontsize = 28 if i == 0 else 20
+        color = PRIMARY_ACCENT if i == 0 else UI_TEXT_COLOR
+        screen.draw.text(
+            control,
+            center=(WIDTH // 2, y_offset),
+            fontsize=fontsize,
+            color=color
+        )
+        y_offset += 30
+
+
+def draw_pause_menu():
+    """Draw the pause menu overlay"""
+    # Draw semi-transparent overlay
+    overlay_rect = Rect(GRID_X, GRID_Y, GRID_WIDTH * BLOCK_SIZE, GRID_HEIGHT * BLOCK_SIZE)
+    screen.draw.filled_rect(overlay_rect, (0, 0, 0, 180))
+    
+    screen.draw.text(
+        "PAUSED",
+        center=(GRID_X + GRID_WIDTH * BLOCK_SIZE // 2, 
+               GRID_Y + GRID_HEIGHT * BLOCK_SIZE // 2 - 50),
+        fontsize=48,
+        color=(255, 255, 255)
+    )
+    
+    screen.draw.text(
+        "Press P to Resume",
+        center=(GRID_X + GRID_WIDTH * BLOCK_SIZE // 2, 
+               GRID_Y + GRID_HEIGHT * BLOCK_SIZE // 2 + 20),
+        fontsize=24,
+        color=(255, 255, 255)
+    )
+    
+    screen.draw.text(
+        "Press M to Toggle Music",
+        center=(GRID_X + GRID_WIDTH * BLOCK_SIZE // 2, 
+               GRID_Y + GRID_HEIGHT * BLOCK_SIZE // 2 + 60),
+        fontsize=20,
+        color=(255, 255, 255)
+    )
+
+
+def handle_piece_lock():
+    """
+    Handle locking a piece and all related effects.
+    Returns True if game is over, False otherwise.
+    """
+    # Lock the piece
+    lock_piece(game_state['current_piece'], grid)
+    sound_manager.play_sound('lock')
+    
+    # Check and clear any completed lines
+    completed_lines = check_lines(grid)
+    if completed_lines:
+        # Track level before clearing lines
+        old_level = game_state['level']
+        
+        # Start line clear effect animation
+        game_state['line_clear_effect'] = [(line_idx, 0.0) for line_idx in completed_lines]
+        
+        # Play appropriate sound based on number of lines
+        if len(completed_lines) >= 4:
+            sound_manager.play_sound('tetris')
+        else:
+            sound_manager.play_sound('line_clear')
+        
+        clear_lines(completed_lines, grid, game_state)
+        
+        # Check if we leveled up
+        if game_state['level'] > old_level:
+            sound_manager.play_sound('level_up')
+    
+    # Spawn new piece
+    spawn_piece(game_state, grid, sprite_manager)
+    
+    # Check if game over and handle it
+    if game_state['game_over']:
+        sound_manager.play_sound('game_over')
+        sound_manager.stop_music()
+        # Check and save high score
+        game_state['is_new_high_score'] = highscore_manager.save(game_state['score'])
+        return True
+    
+    return False
+
 
 def draw():
     """Main draw function - called by Pygame Zero every frame"""
     # Clear screen with background color
     screen.fill(BACKGROUND_COLOR)
+    
+    # Draw start menu
+    if game_state['menu'] == 'start':
+        draw_start_menu()
+        return
     
     # Draw logo in the left spacing area (rotated 90 degrees)
     if rotated_logo:
@@ -191,6 +353,23 @@ def draw():
                     color = PIECE_COLORS[cell]
                     screen.draw.filled_rect(block_rect, color)
                     screen.draw.rect(block_rect, GRID_BORDER)
+    
+    # Draw line clear effects
+    for line_index, effect_timer in game_state['line_clear_effect']:
+        # Calculate alpha based on timer (fade out effect)
+        alpha = int(255 * (1 - effect_timer / game_state['line_clear_duration']))
+        
+        # Create a flashing effect with alternating colors
+        flash_cycle = int(effect_timer * 20) % 2  # Fast flash
+        if flash_cycle == 0:
+            effect_color = (255, 255, 255, alpha)  # White
+        else:
+            effect_color = (255, 215, 0, alpha)  # Gold
+        
+        # Draw the line effect overlay
+        line_rect = Rect(GRID_X, GRID_Y + line_index * BLOCK_SIZE, 
+                        GRID_WIDTH * BLOCK_SIZE, BLOCK_SIZE)
+        screen.draw.filled_rect(line_rect, effect_color)
     
     # Draw current falling piece
     current_piece = game_state['current_piece']
@@ -287,16 +466,24 @@ def draw():
         color=UI_TEXT_COLOR
     )
     
+    # Draw high score
+    screen.draw.text(
+        f"HIGH SCORE: {highscore_manager.get_high_score()}",
+        topleft=(950, 440),
+        fontsize=24,
+        color=SECONDARY_ACCENT
+    )
+    
     screen.draw.text(
         f"LEVEL: {game_state['level']}",
-        topleft=(950, 450),
+        topleft=(950, 490),
         fontsize=28,
         color=UI_TEXT_COLOR
     )
     
     screen.draw.text(
         f"LINES: {game_state['lines_cleared']}",
-        topleft=(950, 500),
+        topleft=(950, 540),
         fontsize=28,
         color=UI_TEXT_COLOR
     )
@@ -304,7 +491,7 @@ def draw():
     # Draw controls
     screen.draw.text(
         "CONTROLS:",
-        topleft=(950, 600),
+        topleft=(950, 640),
         fontsize=24,
         color=UI_TEXT_COLOR
     )
@@ -313,18 +500,20 @@ def draw():
         "LEFT/RIGHT Move",
         "UP Rotate",
         "DOWN Soft Drop",
-        "SPACE Hard Drop"
+        "SPACE Hard Drop",
+        "P Pause",
+        "M Toggle Music"
     ]
     
-    y_offset = 640
+    y_offset = 680
     for control in controls_text:
         screen.draw.text(
             control,
             topleft=(950, y_offset),
-            fontsize=20,
+            fontsize=18,
             color=UI_TEXT_COLOR
         )
-        y_offset += 30
+        y_offset += 28
     
     # Draw game over message if game is over
     if game_state['game_over']:
@@ -341,10 +530,20 @@ def draw():
             color=(255, 255, 255)
         )
         
+        # Show if new high score
+        if game_state.get('is_new_high_score', False):
+            screen.draw.text(
+                "NEW HIGH SCORE!",
+                center=(GRID_X + GRID_WIDTH * BLOCK_SIZE // 2, 
+                       GRID_Y + GRID_HEIGHT * BLOCK_SIZE // 2 - 10),
+                fontsize=28,
+                color=(255, 215, 0)  # Gold color
+            )
+        
         screen.draw.text(
             f"Final Score: {game_state['score']}",
             center=(GRID_X + GRID_WIDTH * BLOCK_SIZE // 2, 
-                   GRID_Y + GRID_HEIGHT * BLOCK_SIZE // 2 + 10),
+                   GRID_Y + GRID_HEIGHT * BLOCK_SIZE // 2 + 30),
             fontsize=28,
             color=(255, 255, 255)
         )
@@ -352,16 +551,33 @@ def draw():
         screen.draw.text(
             "Press R to Restart",
             center=(GRID_X + GRID_WIDTH * BLOCK_SIZE // 2, 
-                   GRID_Y + GRID_HEIGHT * BLOCK_SIZE // 2 + 50),
+                   GRID_Y + GRID_HEIGHT * BLOCK_SIZE // 2 + 70),
             fontsize=24,
             color=(255, 255, 255)
         )
+    
+    # Draw pause menu if paused
+    elif game_state.get('paused', False):
+        draw_pause_menu()
 
 
 def update(dt):
     """Main update function - called by Pygame Zero every frame"""
-    # Don't update if game is over
-    if game_state['game_over']:
+    # Don't update if on start menu
+    if game_state['menu'] == 'start':
+        return
+    
+    # Update line clear effects even when paused or game over
+    if game_state['line_clear_effect']:
+        updated_effects = []
+        for line_index, effect_timer in game_state['line_clear_effect']:
+            new_timer = effect_timer + dt
+            if new_timer < game_state['line_clear_duration']:
+                updated_effects.append((line_index, new_timer))
+        game_state['line_clear_effect'] = updated_effects
+    
+    # Don't update if game is over or paused
+    if game_state['game_over'] or game_state.get('paused', False):
         return
     
     # Initialize the first piece if needed
@@ -380,18 +596,42 @@ def update(dt):
         if not check_collision(game_state['current_piece'], grid, 0, 1):
             game_state['current_piece'].move(0, 1)
         else:
-            # Piece can't move down - lock it and spawn new piece
-            lock_piece(game_state['current_piece'], grid)
-            
-            # Check and clear any completed lines
-            completed_lines = check_lines(grid)
-            clear_lines(completed_lines, grid, game_state)
-            
-            spawn_piece(game_state, grid, sprite_manager)
+            # Piece can't move down - handle locking and effects
+            handle_piece_lock()
 
 
 def on_key_down(key):
     """Handle keyboard input"""
+    # Start menu handling
+    if game_state['menu'] == 'start':
+        if key == keys.SPACE:
+            # Start the game
+            game_state['menu'] = 'playing'
+            sound_manager.play_music(loop=True)
+            return
+        elif key == keys.M:
+            # Toggle music
+            sound_manager.toggle_music()
+            return
+    
+    # Music toggle (works in any state)
+    if key == keys.M:
+        sound_manager.toggle_music()
+        return
+    
+    # Pause handling
+    if key == keys.P and not game_state['game_over'] and game_state['menu'] == 'playing':
+        game_state['paused'] = not game_state.get('paused', False)
+        if game_state['paused']:
+            sound_manager.pause_music()
+        else:
+            sound_manager.unpause_music()
+        return
+    
+    # Don't process other keys if paused
+    if game_state.get('paused', False):
+        return
+    
     # Restart game if game over
     if game_state['game_over'] and key == keys.R:
         # Reset game state
@@ -401,10 +641,14 @@ def on_key_down(key):
         game_state['next_piece'] = None
         game_state['fall_timer'] = 0
         game_state['game_over'] = False
+        game_state['paused'] = False
+        game_state['menu'] = 'playing'
         game_state['score'] = 0
         game_state['level'] = 1
         game_state['lines_cleared'] = 0
         game_state['fall_speed'] = INITIAL_FALL_SPEED
+        game_state['is_new_high_score'] = False
+        sound_manager.play_music(loop=True)
         return
     
     if game_state['current_piece'] is None or game_state['game_over']:
@@ -416,11 +660,13 @@ def on_key_down(key):
     if key == keys.LEFT:
         if not check_collision(current_piece, grid, -1, 0):
             current_piece.move(-1, 0)
+            sound_manager.play_sound('move')
     
     # Move right
     elif key == keys.RIGHT:
         if not check_collision(current_piece, grid, 1, 0):
             current_piece.move(1, 0)
+            sound_manager.play_sound('move')
     
     # Rotate
     elif key == keys.UP:
@@ -443,6 +689,10 @@ def on_key_down(key):
             # If no wall kick worked, revert rotation
             if not kick_successful:
                 current_piece.blocks = old_blocks
+            else:
+                sound_manager.play_sound('rotate')
+        else:
+            sound_manager.play_sound('rotate')
     
     # Soft drop (move down faster)
     elif key == keys.DOWN:
@@ -463,14 +713,8 @@ def on_key_down(key):
         # Add hard drop score (2 points per cell)
         game_state['score'] += cells_dropped * SCORE_HARD_DROP
         
-        # Lock the piece and spawn new one
-        lock_piece(current_piece, grid)
-        
-        # Check and clear any completed lines
-        completed_lines = check_lines(grid)
-        clear_lines(completed_lines, grid, game_state)
-        
-        spawn_piece(game_state, grid, sprite_manager)
+        # Handle piece locking and all related effects
+        handle_piece_lock()
 
 
 # Run the game
